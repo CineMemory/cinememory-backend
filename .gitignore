@@ -300,3 +300,6 @@ pyrightconfig.json
 
 # dummydata
 fixtures/
+
+# migrations
+migrations/

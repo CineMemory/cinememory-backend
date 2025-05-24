@@ -43,7 +43,10 @@ class UserSerializer(serializers.ModelSerializer):
         return value
     
     def validate_password1(self, value):  # validate_password → validate_password1
-        validate_password(value)
+        try:
+            validate_password(value)
+        except ValidationError as e:
+            raise serializers.ValidationError(str(e))
         return value
     
     def validate(self, data):
@@ -60,40 +63,49 @@ class UserSerializer(serializers.ModelSerializer):
         return data
 
     def create(self, validated_data):
-        password = validated_data.pop('password1')
-        validated_data.pop('password2')
-        user = User.objects.create_user(
-            username=validated_data['username'],
-            password=password,
-            birth=validated_data['birth']
-        )
-        return user
+        try:
+            password = validated_data.pop('password1')
+            validated_data.pop('password2')
+            user = User.objects.create_user(
+                username=validated_data['username'],
+                password=password,
+                birth=validated_data['birth']
+            )
+            return user
+        except Exception as e:
+            raise serializers.ValidationError("사용자 생성 중 오류가 발생했습니다.")
     
     def update(self, instance, validated_data):
         """
         사용자 정보 수정
         username, birth, password1, password2 모두 처리
         """
-        # 비밀번호 변경 처리
-        password1 = validated_data.pop('password1', None)
-        password2 = validated_data.pop('password2', None)
-        if password1 and password2:
-            if password1 != password2:
-                raise serializers.ValidationError("비밀번호가 일치하지 않습니다.")
-            instance.set_password(password1)
+        try:
+            # 비밀번호 변경 처리
+            password1 = validated_data.pop('password1', None)
+            password2 = validated_data.pop('password2', None)
+            if password1 and password2:
+                if password1 != password2:
+                    raise serializers.ValidationError("비밀번호가 일치하지 않습니다.")
+                instance.set_password(password1)
 
-        # username, birth 변경 처리
-        instance.username = validated_data.get('username', instance.username)
-        instance.birth = validated_data.get('birth', instance.birth)
-        instance.save()
-        return instance
+            # username, birth 변경 처리
+            instance.username = validated_data.get('username', instance.username)
+            instance.birth = validated_data.get('birth', instance.birth)
+            instance.save()
+            return instance
+        except Exception as e:
+            raise serializers.ValidationError("사용자 정보 수정 중 오류가 발생했습니다.")
     
     def delete(self, instance):
         """
         사용자 계정 삭제
         """
-        instance.delete()
-        return instance
+        try:
+            instance.delete()
+            return instance
+        except Exception as e:
+            raise serializers.ValidationError("사용자 삭제 중 오류가 발생했습니다.")
     
     def get_user_info(self, instance):
         """
@@ -105,7 +117,6 @@ class UserSerializer(serializers.ModelSerializer):
             'username': instance.username,
             'birth': instance.birth
         }
-
 class CustomRegisterSerializer(RegisterSerializer):
     """
     dj-rest-auth 회원가입을 위한 커스텀 시리얼라이저

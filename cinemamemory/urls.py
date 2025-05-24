@@ -24,6 +24,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/cinememory/movies/', include('movies.urls')),
     path('api/v1/cinememory/posts/', include('posts.urls')),
+    path('api/v1/cinememory/accounts/', include('accounts.urls')),
     # API 문서화
     path('api/v1/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/v1/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),

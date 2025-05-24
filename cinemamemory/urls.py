@@ -23,7 +23,7 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/cinememory/movies/', include('movies.urls')),
-    path('api/v1/cinememory/posts/', include('posts.urls')),
+    path('api/v1/cinememory/community/', include('posts.urls')),
     # 커스텀 accounts 뷰 (회원가입, 사용자 관리)
     path('api/v1/cinememory/accounts/', include('accounts.urls')),
     # dj-rest-auth 뷰 (로그인, 로그아웃 등 기본 인증)

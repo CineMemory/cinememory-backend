@@ -1,14 +1,16 @@
 from django.shortcuts import render, redirect
 from rest_framework.response import Response
 from rest_framework import status
-from accounts.models import User
-from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
+from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout, get_user_model
 from django.contrib.auth.decorators import login_required
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from .serializer import UserSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework.authtoken.models import Token
+from .serializer import UserSerializer
+
+User = get_user_model()
 
 # Create your views here.
 """
@@ -18,148 +20,162 @@ password -> 조건 확인 (조건 미정)
 birth -> 생년월일 전부
 """
 
-class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-    """
-    JWT 토큰과 함께 사용자 정보를 반환하는 커스텀 시리얼라이저
-    """
-    def validate(self, attrs):
-        data = super().validate(attrs)
-        
-        # 사용자 정보 추가
-        user_serializer = UserSerializer(self.user)
-        data['user'] = user_serializer.data
-        
-        return data
-
-class CustomTokenObtainPairView(TokenObtainPairView):
-    """
-    JWT 토큰과 함께 사용자 정보를 반환하는 커스텀 뷰
-    """
-    serializer_class = CustomTokenObtainPairSerializer
-
+# 회원가입
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def signup(request):
-    """
-    회원가입 API
-    - username: 사용자 아이디 (중복 불가)
-    - password: 비밀번호 (Django 기본 비밀번호 유효성 검사 적용)
-    - password_confirm: 비밀번호 확인
-    - birth: 생년월일
-    """
     serializer = UserSerializer(data=request.data)
     if serializer.is_valid():
         user = serializer.save()
+        # 회원가입 성공 시 토큰 생성
+        token, created = Token.objects.get_or_create(user=user)
         return Response({
-            'message': '회원가입이 완료되었습니다.',
             'user': {
                 'id': user.id,
                 'username': user.username,
-                'birth': user.birth.isoformat() if user.birth else None
-            }
+                'birth': user.birth
+            },
+            'token': token.key,
+            'message': '회원가입이 완료되었습니다.'
         }, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# 유저네임 중복 확인
-def is_duplicate_username(username):
-    return User.objects.filter(username=username).exists()
-
-@api_view(['GET'])
+# 닉네임(username) 중복 확인
+@api_view(['POST'])
 @permission_classes([AllowAny])
 def username_check(request):
-    nickname = request.GET.get('nickname')
-    if not nickname:
-        return Response({'error': '아이디를 입력해주세요.'}, status=status.HTTP_400_BAD_REQUEST)
-    if is_duplicate_username(nickname):
-        return Response({'error': '이미 존재하는 닉네임입니다.'}, status=status.HTTP_409_CONFLICT)
-    return Response({'message': '사용 가능한 닉네임입니다.'}, status=status.HTTP_200_OK)
+    """
+    사용자명 중복 확인 API
+    
+    요청 데이터:
+    - username: 확인할 사용자 아이디
+    
+    응답:
+    - 사용 가능: 200 OK
+    - 중복: 400 Bad Request
+    """
+    username = request.data.get('username')
+    if not username:
+        return Response({'error': '사용자명을 입력해주세요.'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    if User.objects.filter(username=username).exists():
+        return Response({'error': '이미 사용 중인 아이디입니다.'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    return Response({'message': '사용 가능한 아이디입니다.'}, status=status.HTTP_200_OK)
 
-# @api_view(['POST'])
-# @permission_classes([AllowAny])
-# def login(request):
-#     """
-#     로그인 API
-#     - username: 사용자 아이디
-#     - password: 비밀번호
-#     """
-#     username = request.data.get('username')
-#     password = request.data.get('password')
-
-#     if not username or not password:
-#         return Response({
-#             'error': '아이디와 비밀번호를 모두 입력해주세요.'
-#         }, status=status.HTTP_400_BAD_REQUEST)
-
-#     user = authenticate(request, username=username, password=password)
-#     if user is not None:
-#         auth_login(request, user)
-#         return Response({
-#             'message': '로그인되었습니다.',
-#             'user': {
-#                 'id': user.id,
-#                 'username': user.username
-#             }
-#         })
-#     return Response({
-#         'error': '아이디 또는 비밀번호가 일치하지 않습니다.'
-#     }, status=status.HTTP_400_BAD_REQUEST)
-
-# @api_view(['POST'])
-# @permission_classes([IsAuthenticated])
-# def logout(request):
-#     """
-#     로그아웃 API
-#     """
-#     auth_logout(request)
-#     return Response({'message': '로그아웃되었습니다.'})
-
+# 내 정보 조회
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_my_info(request):
     """
-    현재 로그인한 사용자 정보 조회 API
+    로그인한 사용자 정보 조회 API
     """
-    user = request.user
-    serializer = UserSerializer(user)
-    return Response(serializer.data)
+    serializer = UserSerializer(request.user)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
+# 다른 사용자 프로필 조회
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def get_user_profile(request, user_id):
     """
-    특정 사용자의 프로필 정보 조회 API
+    특정 사용자 프로필 조회 API
     """
     try:
         user = User.objects.get(id=user_id)
         serializer = UserSerializer(user)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     except User.DoesNotExist:
         return Response({'error': '사용자를 찾을 수 없습니다.'}, status=status.HTTP_404_NOT_FOUND)
 
-@api_view(['PUT'])
+# 사용자 정보 수정
+@api_view(['PUT', 'PATCH'])
 @permission_classes([IsAuthenticated])
 def update_user(request):
     """
     사용자 정보 수정 API
-    - username: 변경할 아이디 (선택)
-    - birth: 변경할 생년월일 (선택)
+    
+    수정 가능 항목:
+    - username: 사용자 아이디
+    - password1, password2: 비밀번호 변경
+    - birth: 생년월일
     """
-    user = request.user
-    serializer = UserSerializer(user, data=request.data, partial=True)
+    serializer = UserSerializer(request.user, data=request.data, partial=True)
     if serializer.is_valid():
         serializer.save()
         return Response({
-            'message': '정보가 수정되었습니다.',
-            'user': serializer.data
-        })
+            'user': serializer.data,
+            'message': '사용자 정보가 수정되었습니다.'
+        }, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+# 계정 삭제
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def delete_user(request):
     """
-    회원 탈퇴 API
+    계정 삭제 API
     """
     user = request.user
+    # 관련 토큰도 함께 삭제
+    try:
+        token = Token.objects.get(user=user)
+        token.delete()
+    except Token.DoesNotExist:
+        pass
+    
     user.delete()
-    return Response({'message': '회원 탈퇴가 완료되었습니다.'})
+    return Response({'message': '계정이 삭제되었습니다.'}, status=status.HTTP_200_OK)
+
+# 로그인
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def login(request):
+    """
+    로그인 API
+    
+    요청 데이터:
+    - username: 사용자 아이디
+    - password: 비밀번호
+    
+    응답:
+    - 성공: 200 OK, 사용자 정보 및 토큰
+    - 실패: 400 Bad Request, 오류 메시지
+    """
+    username = request.data.get('username')
+    password = request.data.get('password')
+    
+    if not username or not password:
+        return Response({
+            'error': '사용자명과 비밀번호를 모두 입력해주세요.'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    user = authenticate(username=username, password=password)
+    if user:
+        token, created = Token.objects.get_or_create(user=user)
+        return Response({
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'birth': user.birth
+            },
+            'token': token.key,
+            'message': '로그인되었습니다.'
+        }, status=status.HTTP_200_OK)
+    else:
+        return Response({
+            'error': '사용자명 또는 비밀번호가 올바르지 않습니다.'
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+# 로그아웃
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def logout(request):
+    """
+    로그아웃 API - 토큰 삭제
+    """
+    try:
+        token = Token.objects.get(user=request.user)
+        token.delete()
+        return Response({'message': '로그아웃되었습니다.'}, status=status.HTTP_200_OK)
+    except Token.DoesNotExist:
+        return Response({'message': '이미 로그아웃되었습니다.'}, status=status.HTTP_200_OK)

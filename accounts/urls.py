@@ -1,18 +1,16 @@
 from django.urls import path
 from . import views
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-)
 
 urlpatterns = [
+    # 회원가입 및 사용자 관리
     path('signup/', views.signup, name='signup'),
-    path('check-nickname/', views.username_check, name='username_check'),  # 닉네임 중복 검사
+    path('login/', views.login, name='login'),
+    path('logout/', views.logout, name='logout'),
+    path('check-username/', views.username_check, name='username_check'),  # 사용자명 중복 검사
+    
+    # 사용자 정보 조회 및 관리
     path('me/', views.get_my_info, name='get_my_info'),
     path('<int:user_id>/', views.get_user_profile, name='get_user_profile'),
     path('me/update/', views.update_user, name='update_user'),
     path('me/delete/', views.delete_user, name='delete_user'),
-    # JWT 토큰 발급/갱신 (로그인/로그아웃 역할)
-    path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]

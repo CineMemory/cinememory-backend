@@ -1,12 +1,8 @@
-from django.shortcuts import render, redirect
 from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout, get_user_model
-from django.contrib.auth.decorators import login_required
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework.authtoken.models import Token
 from .serializer import UserSerializer
 

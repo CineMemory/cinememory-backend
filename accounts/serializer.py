@@ -2,6 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
+from dj_rest_auth.registration.serializers import RegisterSerializer
 
 User = get_user_model()
 
@@ -104,4 +105,22 @@ class UserSerializer(serializers.ModelSerializer):
             'username': instance.username,
             'birth': instance.birth
         }
+
+class CustomRegisterSerializer(RegisterSerializer):
+    """
+    dj-rest-auth 회원가입을 위한 커스텀 시리얼라이저
+    birth 필드를 추가하여 회원가입 시 생년월일도 함께 받음
+    """
+    birth = serializers.DateField(required=True)
+    
+    def get_cleaned_data(self):
+        data = super().get_cleaned_data()
+        data['birth'] = self.validated_data.get('birth', '')
+        return data
+    
+    def save(self, request):
+        user = super().save(request)
+        user.birth = self.cleaned_data.get('birth')
+        user.save()
+        return user
         

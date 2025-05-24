@@ -23,6 +23,14 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'username', 'password1', 'password2', 'birth']
         read_only_fields = ['id']
+        
+    def to_representation(self, instance):
+        """
+        사용자 정보 조회 시 비밀번호 필드 제외
+        """
+        ret = super().to_representation(instance)
+        # password1, password2는 write_only이므로 조회 시 자동으로 제외됨
+        return ret
 
     def validate_username(self, value):
         """

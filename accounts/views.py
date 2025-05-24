@@ -7,6 +7,8 @@ from django.contrib.auth.decorators import login_required
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from .serializer import UserSerializer
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 # Create your views here.
 """
@@ -15,6 +17,25 @@ username -> 중복 확인
 password -> 조건 확인 (조건 미정)
 birth -> 생년월일 전부
 """
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    """
+    JWT 토큰과 함께 사용자 정보를 반환하는 커스텀 시리얼라이저
+    """
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        
+        # 사용자 정보 추가
+        user_serializer = UserSerializer(self.user)
+        data['user'] = user_serializer.data
+        
+        return data
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    """
+    JWT 토큰과 함께 사용자 정보를 반환하는 커스텀 뷰
+    """
+    serializer_class = CustomTokenObtainPairSerializer
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -33,7 +54,8 @@ def signup(request):
             'message': '회원가입이 완료되었습니다.',
             'user': {
                 'id': user.id,
-                'username': user.username
+                'username': user.username,
+                'birth': user.birth.isoformat() if user.birth else None
             }
         }, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -41,6 +63,16 @@ def signup(request):
 # 유저네임 중복 확인
 def is_duplicate_username(username):
     return User.objects.filter(username=username).exists()
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def username_check(request):
+    nickname = request.GET.get('nickname')
+    if not nickname:
+        return Response({'error': '아이디를 입력해주세요.'}, status=status.HTTP_400_BAD_REQUEST)
+    if is_duplicate_username(nickname):
+        return Response({'error': '이미 존재하는 닉네임입니다.'}, status=status.HTTP_409_CONFLICT)
+    return Response({'message': '사용 가능한 닉네임입니다.'}, status=status.HTTP_200_OK)
 
 # @api_view(['POST'])
 # @permission_classes([AllowAny])

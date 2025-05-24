@@ -7,6 +7,7 @@ from rest_framework_simplejwt.views import (
 
 urlpatterns = [
     path('signup/', views.signup, name='signup'),
+    path('check-nickname/', views.username_check, name='username_check'),  # 닉네임 중복 검사
     path('me/', views.get_my_info, name='get_my_info'),
     path('<int:user_id>/', views.get_user_profile, name='get_user_profile'),
     path('me/update/', views.update_user, name='update_user'),

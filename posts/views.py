@@ -242,3 +242,29 @@ def reply_detail(request, post_id, comment_id, reply_id):
             {'error': '댓글을 찾을 수 없습니다.'}, 
             status=status.HTTP_404_NOT_FOUND
         )
+        
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def toggle_like(request, post_id):
+    """
+    포스트 좋아요 토글 API
+    """
+    try:
+        post = Post.objects.get(id=post_id)
+        if post.like_users.filter(id=request.user.id).exists():
+            post.like_users.remove(request.user)
+            return Response(
+                {'message': '좋아요가 취소되었습니다.'}, 
+                status=status.HTTP_204_NO_CONTENT
+            )
+        else:
+            post.like_users.add(request.user)
+            return Response(
+                {'message': '좋아요가 추가되었습니다.'}, 
+                status=status.HTTP_201_CREATED
+            )
+    except Post.DoesNotExist:
+        return Response(
+            {'error': '포스트를 찾을 수 없습니다.'}, 
+            status=status.HTTP_404_NOT_FOUND
+        )

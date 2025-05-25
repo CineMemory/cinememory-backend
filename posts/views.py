@@ -18,7 +18,6 @@ def post_list(request):
     return Response(serializer.data)
 
 @api_view(['GET', 'PUT', 'DELETE'])
-@permission_classes([IsAuthenticated])
 def post_detail(request, post_id):
     """
     포스트 상세 조회 API
@@ -34,6 +33,13 @@ def post_detail(request, post_id):
             serializer = PostSerializer(post, context={'request': request})
             return Response(serializer.data)
         elif request.method == 'PUT':
+            # 인증 확인
+            if not request.user.is_authenticated:
+                return Response(
+                    {'error': '인증이 필요합니다.'}, 
+                    status=status.HTTP_401_UNAUTHORIZED
+                )
+            
             post = Post.objects.get(id=post_id)
             
             # 작성자만 수정 가능
@@ -50,6 +56,13 @@ def post_detail(request, post_id):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             
         elif request.method == 'DELETE':
+            # 인증 확인
+            if not request.user.is_authenticated:
+                return Response(
+                    {'error': '인증이 필요합니다.'}, 
+                    status=status.HTTP_401_UNAUTHORIZED
+                )
+            
             post = Post.objects.get(id=post_id)
             
             # 작성자만 삭제 가능

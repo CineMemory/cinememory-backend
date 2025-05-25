@@ -75,7 +75,7 @@ def post_detail(request, post_id):
             post.delete()
             return Response(
                 {'message': '게시글이 삭제되었습니다.'}, 
-                status=status.HTTP_204_NO_CONTENT
+                status=status.HTTP_200_OK
             )
     except Post.DoesNotExist:
         return Response(

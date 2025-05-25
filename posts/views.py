@@ -157,3 +157,41 @@ def comment_detail(request, post_id, comment_id):
             {'error': '댓글을 찾을 수 없습니다.'}, 
             status=status.HTTP_404_NOT_FOUND
         )
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_reply(request, post_id, comment_id):
+    """
+    대댓글 생성 API
+    /api/v1/cinememory/community/post/{post_id}/comments/{comment_id}/replies
+    """
+    try:
+        # 포스트 존재 확인
+        post = Post.objects.get(id=post_id)
+        
+        # 부모 댓글 존재 확인 (해당 포스트의 댓글인지도 확인)
+        parent_comment = Comment.objects.get(id=comment_id, post=post)
+        
+        # 대댓글은 최상위 댓글에만 달 수 있도록 제한 (선택사항)
+        if parent_comment.parent is not None:
+            return Response(
+                {'error': '대댓글에는 답글을 달 수 없습니다.'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        serializer = CommentSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save(post=post, user=request.user, parent=parent_comment)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+    except Post.DoesNotExist:
+        return Response(
+            {'error': '포스트를 찾을 수 없습니다.'}, 
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except Comment.DoesNotExist:
+        return Response(
+            {'error': '댓글을 찾을 수 없습니다.'}, 
+            status=status.HTTP_404_NOT_FOUND
+        )

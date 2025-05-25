@@ -8,5 +8,6 @@ urlpatterns = [
     path('post/<int:post_id>/', views.post_detail, name='postDetail'),
     path('post/<int:post_id>/comments/', views.create_comment, name='createComment'),
     path('post/<int:post_id>/comments/<int:comment_id>/', views.comment_detail, name='commentDetail'),
+    path('post/<int:post_id>/comments/<int:comment_id>/replies/', views.create_reply, name='createReply'),
 ]
 

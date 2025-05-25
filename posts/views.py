@@ -263,20 +263,54 @@ def toggle_like(request, post_id):
     """
     포스트 좋아요 토글 API
     """
+    # try:
+    #     post = Post.objects.get(id=post_id)
+    #     if post.like_users.filter(id=request.user.id).exists():
+    #         post.like_users.remove(request.user)
+    #         return Response(
+    #             {'message': '좋아요가 취소되었습니다.'}, 
+    #             status=status.HTTP_204_NO_CONTENT
+    #         )
+    #     else:
+    #         post.like_users.add(request.user)
+    #         return Response(
+    #             {'message': '좋아요가 추가되었습니다.'}, 
+    #             status=status.HTTP_201_CREATED
+    #         )
+    # except Post.DoesNotExist:
+    #     return Response(
+    #         {'error': '포스트를 찾을 수 없습니다.'}, 
+    #         status=status.HTTP_404_NOT_FOUND
+    #     )
+    
     try:
         post = Post.objects.get(id=post_id)
-        if post.like_users.filter(id=request.user.id).exists():
+        
+        # 좋아요 상태 확인
+        is_liked_before = post.like_users.filter(id=request.user.id).exists()
+        
+        if is_liked_before:
+            # 좋아요 취소
             post.like_users.remove(request.user)
-            return Response(
-                {'message': '좋아요가 취소되었습니다.'}, 
-                status=status.HTTP_204_NO_CONTENT
-            )
+            is_liked_after = False
+            message = '좋아요가 취소되었습니다.'
         else:
+            # 좋아요 추가
             post.like_users.add(request.user)
-            return Response(
-                {'message': '좋아요가 추가되었습니다.'}, 
-                status=status.HTTP_201_CREATED
-            )
+            is_liked_after = True
+            message = '좋아요가 추가되었습니다.'
+        
+        # 최신 좋아요 수 계산
+        like_count = post.like_users.count()
+        
+        # 일관된 응답 구조 반환
+        return Response({
+            'message': message,
+            'is_liked': is_liked_after,
+            'like_count': like_count,
+            'post_id': post.id
+        }, status=status.HTTP_200_OK)
+        
     except Post.DoesNotExist:
         return Response(
             {'error': '포스트를 찾을 수 없습니다.'}, 

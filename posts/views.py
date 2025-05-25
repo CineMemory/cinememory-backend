@@ -195,3 +195,50 @@ def create_reply(request, post_id, comment_id):
             {'error': '댓글을 찾을 수 없습니다.'}, 
             status=status.HTTP_404_NOT_FOUND
         )
+        
+@api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes([IsAuthenticated])
+def reply_detail(request, post_id, comment_id, reply_id):
+    """
+    대댓글 개별 조회, 수정, 삭제 API
+    """
+    try:
+        post = Post.objects.get(id=post_id)
+        comment = Comment.objects.get(id=comment_id, post=post)
+        reply = Comment.objects.get(id=reply_id, post=post, parent=comment)
+        
+        if request.method == 'GET':
+            serializer = CommentSerializer(reply)
+            return Response(serializer.data)
+            
+        elif request.method == 'PUT':
+            if reply.user != request.user:
+                return Response(
+                    {'error': '대댓글 수정 권한이 없습니다.'}, 
+                    status=status.HTTP_403_FORBIDDEN
+                )
+
+            serializer = CommentSerializer(reply, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        elif request.method == 'DELETE':
+            if reply.user != request.user:
+                return Response(
+                    {'error': '대댓글 삭제 권한이 없습니다.'}, 
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            reply.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+    except Post.DoesNotExist:
+        return Response(
+            {'error': '포스트를 찾을 수 없습니다.'}, 
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except Comment.DoesNotExist:
+        return Response(
+            {'error': '댓글을 찾을 수 없습니다.'}, 
+            status=status.HTTP_404_NOT_FOUND
+        )

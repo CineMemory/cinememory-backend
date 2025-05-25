@@ -16,6 +16,26 @@ def post_list(request):
     serializer = PostListSerializer(posts, many=True)
     return Response(serializer.data)
 
+@api_view(['GET'])
+def post_detail(request, post_id):
+    """
+    포스트 상세 조회 API
+    """
+    try:
+        post = Post.objects.select_related('user').prefetch_related(
+            'tags', 
+            'like_users',
+            'comment_set__user',  # 댓글과 댓글 작성자
+            'comment_set__replies__user'  # 대댓글과 대댓글 작성자
+        ).get(id=post_id)
+        serializer = PostSerializer(post, context={'request': request})
+        return Response(serializer.data)
+    except Post.DoesNotExist:
+        return Response(
+            {'error': '포스트를 찾을 수 없습니다.'}, 
+            status=status.HTTP_404_NOT_FOUND
+        )
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_post(request):

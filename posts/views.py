@@ -158,7 +158,7 @@ def comment_detail(request, post_id, comment_id):
             
             return Response(
                 {'message': '댓글이 삭제되었습니다.'}, 
-                status=status.HTTP_204_NO_CONTENT
+                status=status.HTTP_200_OK
             )
             
     except Post.DoesNotExist:

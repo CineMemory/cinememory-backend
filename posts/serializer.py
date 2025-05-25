@@ -8,12 +8,13 @@ class TagSerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     replies = serializers.SerializerMethodField()
+    user_id = serializers.IntegerField(source='user.id', read_only=True)
     username = serializers.CharField(source='user.username', read_only=True)
     
     class Meta:
         model = Comment
-        fields = ('id', 'user', 'username', 'content', 'replies', 'created_at', 'updated_at')
-        read_only_fields = ('user',)
+        fields = ('id', 'user_id', 'username', 'content', 'replies', 'created_at', 'updated_at')
+        read_only_fields = ('user_id',)
     
     def get_replies(self, obj):
         # 대댓글들을 가져옴 (parent가 현재 댓글인 것들)
@@ -24,11 +25,12 @@ class PostListSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
     like_count = serializers.SerializerMethodField()
     comment_count = serializers.SerializerMethodField()
+    user_id = serializers.IntegerField(source='user.id', read_only=True)
     username = serializers.CharField(source='user.username', read_only=True)
     
     class Meta:
         model = Post
-        fields = ('id', 'user', 'username', 'title', 'content', 'tags', 'like_count', 'comment_count', 'created_at', 'updated_at')
+        fields = ('id', 'user_id', 'username', 'title', 'content', 'tags', 'like_count', 'comment_count', 'created_at', 'updated_at')
     
     def get_like_count(self, obj):
         return obj.like_users.count()
@@ -53,12 +55,13 @@ class PostSerializer(serializers.ModelSerializer):
     is_liked = serializers.SerializerMethodField()
     comments = serializers.SerializerMethodField()
     comment_count = serializers.SerializerMethodField()
+    user_id = serializers.IntegerField(source='user.id', read_only=True)
     username = serializers.CharField(source='user.username', read_only=True)
     
     class Meta:
         model = Post
-        fields = ('id', 'user', 'username', 'title', 'content', 'tags', 'tag_ids', 'tag_names', 'like_count', 'is_liked', 'comments', 'comment_count', 'created_at', 'updated_at')
-        read_only_fields = ('user', 'username', 'like_count', 'is_liked', 'comments', 'comment_count')
+        fields = ('id', 'user_id', 'username', 'title', 'content', 'tags', 'tag_ids', 'tag_names', 'like_count', 'is_liked', 'comments', 'comment_count', 'created_at', 'updated_at')
+        read_only_fields = ('user_id', 'username', 'like_count', 'is_liked', 'comments', 'comment_count')
     
     def get_like_count(self, obj):
         return obj.like_users.count()

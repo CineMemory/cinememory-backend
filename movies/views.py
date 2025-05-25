@@ -21,3 +21,22 @@ def movie_detail(request, movie_id):
             {'error': '영화를 찾을 수 없습니다.'}, 
             status=404
         )
+        
+@api_view(['GET'])
+def person_detail(request, person_id):
+    try:
+        # 배우인지 확인
+        if Actor.objects.filter(actor_id=person_id).exists():
+            person = Actor.objects.prefetch_related('movies').get(actor_id=person_id)
+            serializer = ActorSerializer(person)
+            return Response(serializer.data)
+        # 감독인지 확인
+        elif Director.objects.filter(director_id=person_id).exists():
+            person = Director.objects.prefetch_related('movies').get(director_id=person_id)
+            serializer = DirectorSerializer(person)
+            return Response(serializer.data)
+    except Exception as e:
+        return Response(
+            {'error': '사람을 찾을 수 없습니다.'}, 
+            status=404
+        )

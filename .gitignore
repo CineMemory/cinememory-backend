@@ -303,3 +303,5 @@ fixtures/
 
 # migrations
 migrations/
+
+management/

@@ -23,17 +23,17 @@ class CommentSerializer(serializers.ModelSerializer):
 class PostListSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
     like_count = serializers.SerializerMethodField()
-    comments_count = serializers.SerializerMethodField()
+    comment_count = serializers.SerializerMethodField()
     username = serializers.CharField(source='user.username', read_only=True)
     
     class Meta:
         model = Post
-        fields = ('id', 'user', 'username', 'title', 'content', 'tags', 'like_count', 'comments_count', 'created_at', 'updated_at')
+        fields = ('id', 'user', 'username', 'title', 'content', 'tags', 'like_count', 'comment_count', 'created_at', 'updated_at')
     
     def get_like_count(self, obj):
         return obj.like_users.count()
     
-    def get_comments_count(self, obj):
+    def get_comment_count(self, obj):
         return obj.comment_set.count()
 
 class PostSerializer(serializers.ModelSerializer):
@@ -52,12 +52,13 @@ class PostSerializer(serializers.ModelSerializer):
     like_count = serializers.SerializerMethodField()
     is_liked = serializers.SerializerMethodField()
     comments = serializers.SerializerMethodField()
+    comment_count = serializers.SerializerMethodField()
     username = serializers.CharField(source='user.username', read_only=True)
     
     class Meta:
         model = Post
-        fields = ('id', 'user', 'username', 'title', 'content', 'tags', 'tag_ids', 'tag_names', 'like_count', 'is_liked', 'comments', 'created_at', 'updated_at')
-        read_only_fields = ('user', 'username', 'like_count', 'is_liked', 'comments')
+        fields = ('id', 'user', 'username', 'title', 'content', 'tags', 'tag_ids', 'tag_names', 'like_count', 'is_liked', 'comments', 'comment_count', 'created_at', 'updated_at')
+        read_only_fields = ('user', 'username', 'like_count', 'is_liked', 'comments', 'comment_count')
     
     def get_like_count(self, obj):
         return obj.like_users.count()
@@ -72,6 +73,9 @@ class PostSerializer(serializers.ModelSerializer):
         # 최상위 댓글들만 가져옴 (parent가 None인 것들)
         top_level_comments = obj.comment_set.filter(parent=None).order_by('created_at')
         return CommentSerializer(top_level_comments, many=True).data
+    
+    def get_comment_count(self, obj):
+        return obj.comment_set.count()
     
     def create(self, validated_data):
         from .models import Tag  # Tag 모델 import 추가 필요

@@ -1,10 +1,10 @@
 from rest_framework.decorators import api_view
-from .serializer import PostSerializer, PostListSerializer
+from .serializer import PostSerializer, PostListSerializer, CommentSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import permission_classes
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Post
+from .models import Post, Comment
 
 # 페이지네이션 설정 필요 -> 한 번에 몇 개 보일건지
 @api_view(['GET'])
@@ -45,3 +45,82 @@ def create_post(request):
             serializer.save(user=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_comment(request, post_id):
+    try:
+        post = Post.objects.get(id=post_id)
+        serializer = CommentSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save(post=post, user=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    except Post.DoesNotExist:
+        return Response(
+            {'error': '포스트를 찾을 수 없습니다.'}, 
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+@api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes([IsAuthenticated])
+def comment_detail(request, post_id, comment_id):
+    """
+    댓글 개별 조회, 수정, 삭제 API
+    """
+    try:
+        post = Post.objects.get(id=post_id)
+        comment = Comment.objects.select_related('user').prefetch_related('replies__user').get(
+            id=comment_id, 
+            post=post
+        )
+        
+        if request.method == 'GET':
+            # 댓글 조회
+            serializer = CommentSerializer(comment)
+            return Response(serializer.data)
+        
+        elif request.method == 'PUT':
+            # 댓글 수정 (작성자만 가능)
+            if comment.user != request.user:
+                return Response(
+                    {'error': '댓글 수정 권한이 없습니다.'}, 
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
+            serializer = CommentSerializer(comment, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        elif request.method == 'DELETE':
+            # 댓글 삭제 (작성자만 가능)            
+            if comment.user != request.user:
+                return Response(
+                    {'error': '댓글 삭제 권한이 없습니다.'}, 
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
+            # 대댓글이 있는지 확인
+            replies_count = comment.replies.count()
+            
+            comment_id_to_delete = comment.id
+            comment.delete()
+            
+            return Response(
+                {'message': '댓글이 삭제되었습니다.'}, 
+                status=status.HTTP_204_NO_CONTENT
+            )
+            
+    except Post.DoesNotExist:
+        return Response(
+            {'error': '포스트를 찾을 수 없습니다.'}, 
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except Comment.DoesNotExist:
+        return Response(
+            {'error': '댓글을 찾을 수 없습니다.'}, 
+            status=status.HTTP_404_NOT_FOUND
+        )

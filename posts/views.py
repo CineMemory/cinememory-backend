@@ -16,20 +16,53 @@ def post_list(request):
     serializer = PostListSerializer(posts, many=True)
     return Response(serializer.data)
 
-@api_view(['GET'])
+@api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes([IsAuthenticated])
 def post_detail(request, post_id):
     """
     포스트 상세 조회 API
     """
     try:
-        post = Post.objects.select_related('user').prefetch_related(
-            'tags', 
-            'like_users',
-            'comment_set__user',  # 댓글과 댓글 작성자
-            'comment_set__replies__user'  # 대댓글과 대댓글 작성자
-        ).get(id=post_id)
-        serializer = PostSerializer(post, context={'request': request})
-        return Response(serializer.data)
+        if request.method == 'GET':
+            post = Post.objects.select_related('user').prefetch_related(
+                'tags', 
+                'like_users',
+                'comment_set__user',  # 댓글과 댓글 작성자
+                'comment_set__replies__user'  # 대댓글과 대댓글 작성자
+            ).get(id=post_id)
+            serializer = PostSerializer(post, context={'request': request})
+            return Response(serializer.data)
+        elif request.method == 'PUT':
+            post = Post.objects.get(id=post_id)
+            
+            # 작성자만 수정 가능
+            if post.user != request.user:
+                return Response(
+                    {'error': '게시글 수정 권한이 없습니다.'}, 
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
+            serializer = PostSerializer(post, data=request.data, context={'request': request}, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
+        elif request.method == 'DELETE':
+            post = Post.objects.get(id=post_id)
+            
+            # 작성자만 삭제 가능
+            if post.user != request.user:
+                return Response(
+                    {'error': '게시글 삭제 권한이 없습니다.'}, 
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
+            post.delete()
+            return Response(
+                {'message': '게시글이 삭제되었습니다.'}, 
+                status=status.HTTP_204_NO_CONTENT
+            )
     except Post.DoesNotExist:
         return Response(
             {'error': '포스트를 찾을 수 없습니다.'}, 

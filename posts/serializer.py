@@ -94,3 +94,34 @@ class PostSerializer(serializers.ModelSerializer):
         
         return post
     
+    def update(self, instance, validated_data):
+        from .models import Tag
+        
+        # 태그 관련 데이터 분리
+        tag_ids = validated_data.pop('tag_ids', None)
+        tag_names = validated_data.pop('tag_names', None)
+        
+        # 기본 필드 업데이트
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        
+        # 태그 업데이트 (tag_ids나 tag_names가 제공된 경우에만)
+        if tag_ids is not None or tag_names is not None:
+            # 기존 태그 모두 제거
+            instance.tags.clear()
+            
+            # 새로운 태그 추가
+            if tag_ids:
+                instance.tags.add(*tag_ids)
+            
+            if tag_names:
+                for tag_name in tag_names:
+                    tag, created = Tag.objects.get_or_create(
+                        name=tag_name.strip(),
+                        defaults={'name': tag_name.strip()}
+                    )
+                    instance.tags.add(tag)
+        
+        return instance
+    

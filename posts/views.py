@@ -8,6 +8,7 @@ from .models import Post, Comment
 
 # 페이지네이션 설정 필요 -> 한 번에 몇 개 보일건지
 @api_view(['GET'])
+@permission_classes([])  # 인증 불필요 명시
 def post_list(request):
     """
     포스트 목록 조회 API - 최신순 정렬

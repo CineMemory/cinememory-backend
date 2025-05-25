@@ -1,5 +1,5 @@
 from rest_framework.decorators import api_view
-from .serializer import PostSerializer, PostListSerializer
+from .serializer import PostSerializer, PostListSerializer, CommentSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import permission_classes
 from rest_framework.response import Response
@@ -45,3 +45,20 @@ def create_post(request):
             serializer.save(user=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_comment(request, post_id):
+    try:
+        post = Post.objects.get(id=post_id)
+        serializer = CommentSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save(post=post, user=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    except Post.DoesNotExist:
+        return Response(
+            {'error': '포스트를 찾을 수 없습니다.'}, 
+            status=status.HTTP_404_NOT_FOUND
+        )

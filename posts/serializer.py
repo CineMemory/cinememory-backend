@@ -10,16 +10,26 @@ class CommentSerializer(serializers.ModelSerializer):
     replies = serializers.SerializerMethodField()
     user_id = serializers.IntegerField(source='user.id', read_only=True)
     username = serializers.CharField(source='user.username', read_only=True)
+    like_count = serializers.SerializerMethodField()
+    is_liked = serializers.SerializerMethodField()
     
     class Meta:
         model = Comment
-        fields = ('id', 'user_id', 'username', 'content', 'replies', 'created_at', 'updated_at')
+        fields = ('id', 'user_id', 'username', 'content', 'replies', 'like_count', 'is_liked', 'created_at', 'updated_at')
         read_only_fields = ('user_id',)
     
+    def get_like_count(self, obj):
+        return obj.like_users.count()
+    
+    def get_is_liked(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return obj.like_users.filter(id=request.user.id).exists()
+        return False
+    
     def get_replies(self, obj):
-        # 대댓글들을 가져옴 (parent가 현재 댓글인 것들)
         replies = obj.replies.all()
-        return CommentSerializer(replies, many=True).data
+        return CommentSerializer(replies, many=True, context=self.context).data
 
 class PostListSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)

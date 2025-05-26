@@ -208,6 +208,51 @@ def comment_detail(request, post_id, comment_id):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+def toggle_comment_like(request, post_id, comment_id):
+    """
+    댓글 좋아요 토글 API
+    """
+    try:
+        post = Post.objects.get(id=post_id)
+        comment = Comment.objects.get(id=comment_id, post=post)
+        
+        # 좋아요 상태 확인
+        is_liked_before = comment.like_users.filter(id=request.user.id).exists()
+        
+        if is_liked_before:
+            # 좋아요 취소
+            comment.like_users.remove(request.user)
+            is_liked_after = False
+            message = '댓글 좋아요가 취소되었습니다.'
+        else:
+            # 좋아요 추가
+            comment.like_users.add(request.user)
+            is_liked_after = True
+            message = '댓글 좋아요가 추가되었습니다.'
+        
+        # 최신 좋아요 수 계산
+        like_count = comment.like_users.count()
+        
+        return Response({
+            'message': message,
+            'is_liked': is_liked_after,
+            'like_count': like_count,
+            'comment_id': comment.id
+        }, status=status.HTTP_200_OK)
+        
+    except Post.DoesNotExist:
+        return Response(
+            {'error': '포스트를 찾을 수 없습니다.'}, 
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except Comment.DoesNotExist:
+        return Response(
+            {'error': '댓글을 찾을 수 없습니다.'}, 
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def create_reply(request, post_id, comment_id):
     try:
         post = Post.objects.get(id=post_id)

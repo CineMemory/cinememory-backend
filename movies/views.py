@@ -219,4 +219,73 @@ def like_person(request, person_id):
             {'error': '사람을 찾을 수 없습니다.'}, 
             status=status.HTTP_404_NOT_FOUND
         )
+
+@api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes([IsAuthenticated])
+def review_movie_detail(request, movie_id, review_id):
+    try:    
+        review = MovieReview.objects.get(id=review_id)
+        if review.user != request.user:
+            return Response({'error': '리뷰 수정 권한이 없습니다.'}, status=status.HTTP_403_FORBIDDEN)
         
+        if request.method == 'GET':
+            serializer = MovieReviewSerializer(review)
+            return Response(serializer.data)
+        elif request.method == 'PUT':
+            serializer = MovieReviewSerializer(review, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()  # user는 이미 설정되어 있으므로 따로 전달할 필요 없음
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        elif request.method == 'DELETE':
+            review.delete()
+            return Response({'message': '리뷰가 삭제되었습니다.'}, status=status.HTTP_204_NO_CONTENT) 
+    except MovieReview.DoesNotExist:
+        return Response({'error': '리뷰를 찾을 수 없습니다.'}, status=status.HTTP_404_NOT_FOUND)
+    
+@api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes([IsAuthenticated])
+def review_person_detail(request, person_id, review_id):
+    try:
+        # Actor 리뷰인지 Director 리뷰인지 확인
+        if Actor.objects.filter(actor_id=person_id).exists():
+            review = ActorReview.objects.get(id=review_id)
+            if review.user != request.user:
+                return Response({'error': '리뷰 수정 권한이 없습니다.'}, status=status.HTTP_403_FORBIDDEN)
+            
+            if request.method == 'GET':
+                serializer = ActorReviewSerializer(review)
+                return Response(serializer.data)
+            elif request.method == 'PUT':
+                serializer = ActorReviewSerializer(review, data=request.data, partial=True)
+                if serializer.is_valid():
+                    serializer.save()  # user는 이미 설정되어 있으므로 따로 전달할 필요 없음
+                    return Response(serializer.data)
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            elif request.method == 'DELETE':
+                review.delete()
+                return Response({'message': '리뷰가 삭제되었습니다.'}, status=status.HTTP_204_NO_CONTENT)
+                
+        elif Director.objects.filter(director_id=person_id).exists():
+            review = DirectorReview.objects.get(id=review_id)
+            if review.user != request.user:
+                return Response({'error': '리뷰 수정 권한이 없습니다.'}, status=status.HTTP_403_FORBIDDEN)
+            
+            if request.method == 'GET':
+                serializer = DirectorReviewSerializer(review)
+                return Response(serializer.data)
+            elif request.method == 'PUT':
+                serializer = DirectorReviewSerializer(review, data=request.data, partial=True)
+                if serializer.is_valid():
+                    serializer.save()  # user는 이미 설정되어 있으므로 따로 전달할 필요 없음
+                    return Response(serializer.data)
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            elif request.method == 'DELETE':
+                review.delete()
+                return Response({'message': '리뷰가 삭제되었습니다.'}, status=status.HTTP_204_NO_CONTENT)
+        else:
+            return Response({'error': '사람을 찾을 수 없습니다.'}, status=status.HTTP_404_NOT_FOUND)
+            
+    except (ActorReview.DoesNotExist, DirectorReview.DoesNotExist):
+        return Response({'error': '리뷰를 찾을 수 없습니다.'}, status=status.HTTP_404_NOT_FOUND)
+    

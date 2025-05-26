@@ -158,16 +158,22 @@ class MovieSerializer(serializers.ModelSerializer): # 영화 상세 페이지 �
 
 
 class MovieReviewSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField(read_only=True)
+    
     class Meta:
         model = MovieReview
         fields = '__all__'
         
 class ActorReviewSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField(read_only=True)
+    
     class Meta:
         model = ActorReview
         fields = '__all__'
         
 class DirectorReviewSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField(read_only=True)
+    
     class Meta:
         model = DirectorReview
         fields = '__all__'

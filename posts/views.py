@@ -122,8 +122,21 @@ def create_comment(request, post_id):
         post = Post.objects.get(id=post_id)
         serializer = CommentSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
-            serializer.save(post=post, user=request.user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            comment = serializer.save(post=post, user=request.user)
+            
+            # 작성자 정보를 포함한 응답 생성
+            response_data = {
+                'message': '댓글이 성공적으로 작성되었습니다.',
+                'comment_id': comment.id,
+                'content': comment.content,
+                'author': request.user.username,
+                'user_id': request.user.id,
+                'created_at': comment.created_at.isoformat(),
+                'updated_at': comment.updated_at.isoformat(),
+                'replies': []
+            }
+            
+            return Response(response_data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     except Post.DoesNotExist:
         return Response(
@@ -196,18 +209,10 @@ def comment_detail(request, post_id, comment_id):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_reply(request, post_id, comment_id):
-    """
-    대댓글 생성 API
-    /api/v1/cinememory/community/post/{post_id}/comments/{comment_id}/replies
-    """
     try:
-        # 포스트 존재 확인
         post = Post.objects.get(id=post_id)
-        
-        # 부모 댓글 존재 확인 (해당 포스트의 댓글인지도 확인)
         parent_comment = Comment.objects.get(id=comment_id, post=post)
         
-        # 대댓글은 최상위 댓글에만 달 수 있도록 제한 (선택사항)
         if parent_comment.parent is not None:
             return Response(
                 {'error': '대댓글에는 답글을 달 수 없습니다.'}, 
@@ -216,8 +221,21 @@ def create_reply(request, post_id, comment_id):
         
         serializer = CommentSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
-            serializer.save(post=post, user=request.user, parent=parent_comment)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            reply = serializer.save(post=post, user=request.user, parent=parent_comment)
+            
+            # 작성자 정보를 포함한 응답 생성
+            response_data = {
+                'message': '답글이 성공적으로 작성되었습니다.',
+                'comment_id': reply.id,
+                'content': reply.content,
+                'author': request.user.username,
+                'user_id': request.user.id,
+                'created_at': reply.created_at.isoformat(),
+                'updated_at': reply.updated_at.isoformat(),
+                'parent_id': parent_comment.id
+            }
+            
+            return Response(response_data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
     except Post.DoesNotExist:

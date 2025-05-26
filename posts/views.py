@@ -122,8 +122,21 @@ def create_comment(request, post_id):
         post = Post.objects.get(id=post_id)
         serializer = CommentSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
-            serializer.save(post=post, user=request.user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            comment = serializer.save(post=post, user=request.user)
+            
+            # 작성자 정보를 포함한 응답 생성
+            response_data = {
+                'message': '댓글이 성공적으로 작성되었습니다.',
+                'comment_id': comment.id,
+                'content': comment.content,
+                'author': request.user.username,
+                'user_id': request.user.id,
+                'created_at': comment.created_at.isoformat(),
+                'updated_at': comment.updated_at.isoformat(),
+                'replies': []
+            }
+            
+            return Response(response_data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     except Post.DoesNotExist:
         return Response(
@@ -195,19 +208,56 @@ def comment_detail(request, post_id, comment_id):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def create_reply(request, post_id, comment_id):
+def toggle_comment_like(request, post_id, comment_id):
     """
-    대댓글 생성 API
-    /api/v1/cinememory/community/post/{post_id}/comments/{comment_id}/replies
+    댓글 좋아요 토글 API
     """
     try:
-        # 포스트 존재 확인
         post = Post.objects.get(id=post_id)
+        comment = Comment.objects.get(id=comment_id, post=post)
         
-        # 부모 댓글 존재 확인 (해당 포스트의 댓글인지도 확인)
+        # 좋아요 상태 확인
+        is_liked_before = comment.like_users.filter(id=request.user.id).exists()
+        
+        if is_liked_before:
+            # 좋아요 취소
+            comment.like_users.remove(request.user)
+            is_liked_after = False
+            message = '댓글 좋아요가 취소되었습니다.'
+        else:
+            # 좋아요 추가
+            comment.like_users.add(request.user)
+            is_liked_after = True
+            message = '댓글 좋아요가 추가되었습니다.'
+        
+        # 최신 좋아요 수 계산
+        like_count = comment.like_users.count()
+        
+        return Response({
+            'message': message,
+            'is_liked': is_liked_after,
+            'like_count': like_count,
+            'comment_id': comment.id
+        }, status=status.HTTP_200_OK)
+        
+    except Post.DoesNotExist:
+        return Response(
+            {'error': '포스트를 찾을 수 없습니다.'}, 
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except Comment.DoesNotExist:
+        return Response(
+            {'error': '댓글을 찾을 수 없습니다.'}, 
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_reply(request, post_id, comment_id):
+    try:
+        post = Post.objects.get(id=post_id)
         parent_comment = Comment.objects.get(id=comment_id, post=post)
         
-        # 대댓글은 최상위 댓글에만 달 수 있도록 제한 (선택사항)
         if parent_comment.parent is not None:
             return Response(
                 {'error': '대댓글에는 답글을 달 수 없습니다.'}, 
@@ -216,8 +266,21 @@ def create_reply(request, post_id, comment_id):
         
         serializer = CommentSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
-            serializer.save(post=post, user=request.user, parent=parent_comment)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            reply = serializer.save(post=post, user=request.user, parent=parent_comment)
+            
+            # 작성자 정보를 포함한 응답 생성
+            response_data = {
+                'message': '답글이 성공적으로 작성되었습니다.',
+                'comment_id': reply.id,
+                'content': reply.content,
+                'author': request.user.username,
+                'user_id': request.user.id,
+                'created_at': reply.created_at.isoformat(),
+                'updated_at': reply.updated_at.isoformat(),
+                'parent_id': parent_comment.id
+            }
+            
+            return Response(response_data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
     except Post.DoesNotExist:

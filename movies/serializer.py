@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ActorReview, DirectorReview, Movie, Actor, Director, MovieReview, Series, Genre, WatchProvider, MovieWatchProvider
+from .models import ActorReview, DirectorReview, Movie, Actor, Director, MovieReview, Series, Genre, WatchProvider, MovieWatchProvider, PersonalizedTimeline
 
 class MovieBasicSerializer(serializers.ModelSerializer):    # 영화 기본 정보
     class Meta:
@@ -177,3 +177,90 @@ class DirectorReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = DirectorReview
         fields = '__all__'
+        
+class OnboardingMovieSerializer(serializers.ModelSerializer):
+    genres = GenreSerializer(many=True, read_only=True)
+    poster_url = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Movie
+        fields = (
+            'movie_id', 
+            'title', 
+            'release_date', 
+            'poster_url', 
+            'vote_average', 
+            'runtime', 
+            'popularity', 
+            'tagline', 
+            'adult_flag', 
+            'genres', 
+            'onboarding_priority', 
+            'onboarding_category'
+        )
+        
+    def get_poster_url(self, obj):
+        return obj.poster_url
+
+class MovieSimpleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Movie
+        fields = ('movie_id', 'title', 'release_date', 'poster_path', 'vote_average', 'runtime', 'popularity', 'status', 'tagline', 'overview', 'adult_flag')
+
+    def get_poster_url(self, obj):
+        return obj.poster_url
+    
+class UserPreferenceSerializer(serializers.ModelSerializer):
+    selected_movies = MovieSimpleSerializer(many=True, read_only=True)
+    selected_movie_ids = serializers.ListField(
+        child=serializers.IntegerField(),
+        write_only=True,
+        required=False,
+        help_text="선택한 영화 ID 리스트"
+    )
+    
+    class Meta:
+        model = UserPreference
+        fields = (
+            'selected_movies',
+            'selected_movie_ids',
+            'analysis_result',
+            'preferred_genres',
+            'preferred_decades',
+            'storytelling_preference',
+            'tone_preference',
+            'recommendation_keywords',
+            'is_analyzed',
+            'analyzed_at',
+            'created_at',
+            'updated_at'
+        )
+        read_only_fields = (
+            'analysis_result',
+            'is_analyzed',
+            'analyzed_at',
+            'created_at',
+            'updated_at'
+        )
+        
+    def update(self, instance, validated_data):
+        selected_movie_ids = validated_data.pop('selected_movie_ids', None)
+        if selected_movie_ids:
+            instance.selected_movies.set(Movie.objects.filter(movie_id__in=selected_movie_ids))
+        return super().update(instance, validated_data)
+    
+class PersonalizedTimelineSerializer(serializers.ModelSerializer):
+    movie = MovieSimpleSerializer(read_only=True)
+    
+    class Meta:
+        model = PersonalizedTimeline
+        fields = (
+            'id',
+            'movie',
+            'user_age',
+            'year',
+            'recommendation_reason',
+            'preference_score',
+            'display_order',
+            'created_at'
+        )

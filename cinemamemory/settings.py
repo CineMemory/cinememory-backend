@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -174,3 +175,4 @@ CORS_ALLOW_ALL_ORIGINS = True  # 개발 환경에서만 사용. 프로덕션에�
 CORS_ALLOW_CREDENTIALS = True
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0']
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')

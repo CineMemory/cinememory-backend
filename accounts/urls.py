@@ -12,5 +12,6 @@ urlpatterns = [
     path('me/', views.get_my_info, name='get_my_info'),
     path('<int:user_id>/', views.get_user_profile, name='get_user_profile'),
     path('me/update/', views.update_user, name='update_user'),
+    path('me/profile-image/', views.update_profile_image, name='update_profile_image'),
     path('me/delete/', views.delete_user, name='delete_user'),
 ]

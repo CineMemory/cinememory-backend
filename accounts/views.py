@@ -94,6 +94,7 @@ def update_user(request):
     - username: 사용자 아이디
     - password1, password2: 비밀번호 변경
     - birth: 생년월일
+    - profile_image: 프로필 이미지
     """
     serializer = UserSerializer(request.user, data=request.data, partial=True)
     if serializer.is_valid():
@@ -175,3 +176,26 @@ def logout(request):
         return Response({'message': '로그아웃되었습니다.'}, status=status.HTTP_200_OK)
     except Token.DoesNotExist:
         return Response({'message': '이미 로그아웃되었습니다.'}, status=status.HTTP_200_OK)
+
+# 프로필 이미지 업데이트
+@api_view(['PUT', 'PATCH'])
+@permission_classes([IsAuthenticated])
+def update_profile_image(request):
+    """
+    프로필 이미지 업데이트 API
+    
+    요청 데이터:
+    - profile_image: 업로드할 이미지 파일
+    """
+    if 'profile_image' not in request.FILES:
+        return Response({'error': '프로필 이미지를 선택해주세요.'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    user = request.user
+    user.profile_image = request.FILES['profile_image']
+    user.save()
+    
+    serializer = UserSerializer(user)
+    return Response({
+        'user': serializer.data,
+        'message': '프로필 이미지가 업데이트되었습니다.'
+    }, status=status.HTTP_200_OK)

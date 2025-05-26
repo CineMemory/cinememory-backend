@@ -19,12 +19,22 @@ class UserSerializer(serializers.ModelSerializer):
     password1 = serializers.CharField(write_only=True, required=True)  # 비밀번호 (읽기 전용)
     password2 = serializers.CharField(write_only=True, required=True)  # 비밀번호 확인 (읽기 전용)
     birth = serializers.DateField(required=True)  # 생년월일
+    profile_image = serializers.ImageField(required=False)  # 프로필 이미지 
+    profile_image_url = serializers.SerializerMethodField()  # 프로필 이미지 URL
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'password1', 'password2', 'birth']
+        fields = ['id', 'username', 'password1', 'password2', 'birth', 'profile_image', 'profile_image_url']
         read_only_fields = ['id']
         
+    def get_profile_image_url(self, obj):
+        """
+        프로필 이미지 URL 반환
+        """
+        if obj.profile_image:
+            return obj.profile_image.url
+        return '/media/profile_images/default.jpg'
+    
     def to_representation(self, instance):
         """
         사용자 정보 조회 시 비밀번호 필드 제외
@@ -78,7 +88,7 @@ class UserSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         """
         사용자 정보 수정
-        username, birth, password1, password2 모두 처리
+        username, birth, password1, password2, profile_image 모두 처리
         """
         try:
             # 비밀번호 변경 처리
@@ -89,9 +99,15 @@ class UserSerializer(serializers.ModelSerializer):
                     raise serializers.ValidationError("비밀번호가 일치하지 않습니다.")
                 instance.set_password(password1)
 
-            # username, birth 변경 처리
+            # username, birth, profile_image 변경 처리
             instance.username = validated_data.get('username', instance.username)
             instance.birth = validated_data.get('birth', instance.birth)
+            
+            # 프로필 이미지 처리
+            profile_image = validated_data.get('profile_image', None)
+            if profile_image is not None:
+                instance.profile_image = profile_image
+            
             instance.save()
             return instance
         except Exception as e:

@@ -1,0 +1,542 @@
+[
+  {
+    "model": "movies.movie",
+    "pk": 950387,
+    "fields": {
+      "title": "A MINECRAFT MOVIE 마인크래프트 무비",
+      "release_date": "2025-03-31",
+      "poster_path": "https://image.tmdb.org/t/p/w500/k5aQ2TqKcQFwPoXHkpAGoKNVDLZ.jpg",
+      "popularity": 705.1548,
+      "tagline": "",
+      "overview": "왕년의 게임 챔피언이었지만 지금은 폐업 직전의 게임샵 주인이 된 '개릿'과 엄마를 잃고 낯선 동네로 이사 온 남매 '헨리'와 '나탈리' 그리고 그들을 돕는 부동산 중개업자 '던'. 이들은 ‘개릿’이 수집한 ‘큐브’가 내뿜는 신비한 빛을 따라가다 어느 폐광 속에 열린 포털을 통해 미지의 공간으로 빨려들어간다. 산과 나무, 구름과 달, 심지어 꿀벌까지 상상하는 모든 것이 네모난 현실이 되는 이곳은 바로 ‘오버월드’. 일찍이 이 세계로 넘어와 완벽하게 적응한 ‘스티브’를 만난 네 사람은 지하세계 ‘네더’를 다스리는 마법사 ‘말고샤’의 침공으로 ‘오버월드’가 위험에 빠졌다는 사실을 알게 된다. 현실 세계로 돌아가기 위해서는 일단 살아남아야 하는 법! 다섯 명의 ‘동글이’들은 ‘오버월드’를 구하기 위해 힘을 합치게 되는데…",
+      "status": "Released",
+      "runtime": 101,
+      "vote_average": 6.527,
+      "adult_flag": false,
+      "video_flag": false,
+      "series": 1461530
+    }
+  },
+  {
+    "model": "movies.movie",
+    "pk": 552524,
+    "fields": {
+      "title": "릴로 & 스티치",
+      "release_date": "2025-05-17",
+      "poster_path": "https://image.tmdb.org/t/p/w500/ww7jn7lv1YzTAGd5m0R6CP1VXAs.jpg",
+      "popularity": 686.2246,
+      "tagline": "사랑으로 꽉~찬! 나만의 특별한 가족♥",
+      "overview": "보송보송한 파란 솜털, 호기심 가득한 큰 눈, 장난기 가득한 웃음을 가졌지만..! 가장 위험한 실험체 취급을 받던 ‘스티치’는 우주에서 도망쳐 지구의 하와이 섬에 불시착하게 된다. 단짝 친구를 원하던 외톨이 소녀 ‘릴로’는 별똥별과 함께 나타난 귀여운 파란색 강아지(?) ‘스티치’와 소중한 친구이자, 하나의 가족이 되어가며 외로웠던 일상이 유쾌하게 변하기 시작한다. 그러던 어느 날, ‘스티치’를 잡아 우주로 되돌아가려는 정체불명의 요원들이 등장하고 ‘릴로’와 ‘스티치’는 예상치 못한 상황을 마주하게 되는데..!",
+      "status": "Released",
+      "runtime": 107,
+      "vote_average": 7.032,
+      "adult_flag": false,
+      "video_flag": false,
+      "series": null
+    }
+  },
+  {
+    "model": "movies.movie",
+    "pk": 574475,
+    "fields": {
+      "title": "파이널 데스티네이션: 블러드라인",
+      "release_date": "2025-05-09",
+      "poster_path": "https://image.tmdb.org/t/p/w500/agaIglFrRGuUQOzkhzlrvcjJgt2.jpg",
+      "popularity": 546.1626,
+      "tagline": "죽음이 피보다 진하게 대물림된다",
+      "overview": "끝없는 악몽에 시달리던 ‘스테파니’는 그 원인을 찾던 중  집안 대대로 내려오는 죽음의 저주와 그 실체를 알게 된다  놀랍게도, 죽음의 순서가 자신의 가족에게 이어졌음을 알게 되는데...  이제, 다음 차례는 누구?",
+      "status": "Released",
+      "runtime": 110,
+      "vote_average": 7.066,
+      "adult_flag": false,
+      "video_flag": false,
+      "series": 8864
+    }
+  },
+  {
+    "model": "movies.movie",
+    "pk": 575265,
+    "fields": {
+      "title": "미션 임파서블: 파이널 레코닝",
+      "release_date": "2025-05-17",
+      "poster_path": "https://image.tmdb.org/t/p/w500/5Zxdorl5TharlI9S47YxoKzGCsi.jpg",
+      "popularity": 349.707,
+      "tagline": "모든 선택이 향하는 단 하나의 미션",
+      "overview": "디지털상의 모든 정보를 통제할 수 있는 사상 초유의 무기로 인해 전 세계 국가와 조직의 기능이 마비되고, 인류 전체가 위협받는 절체절명의 위기가 찾아온다. 이를 막을 수 있는 건 오직 존재 자체가 기밀인 에단 헌트와 그가 소속된 IMF뿐이다. 무기를 무력화하는 데 반드시 필요한 키를 손에 쥔 에단 헌트. 오랜 동료 루터와 벤지, 그리고 새로운 팀원이 된 그레이스, 파리, 드가와 함께 지금껏 경험했던 그 어떤 상대보다도 강력한 적에 맞서 모두의 운명을 건 불가능한 미션에 뛰어든다.",
+      "status": "Released",
+      "runtime": 170,
+      "vote_average": 7.0,
+      "adult_flag": false,
+      "video_flag": false,
+      "series": 87359
+    }
+  },
+  {
+    "model": "movies.movie",
+    "pk": 1197306,
+    "fields": {
+      "title": "워킹맨",
+      "release_date": "2025-03-26",
+      "poster_path": "https://image.tmdb.org/t/p/w500/tK5sCN4cebvTt9MuSlNHehVQnYg.jpg",
+      "popularity": 314.9315,
+      "tagline": "",
+      "overview": "전직 블랙 옵스 요원이었던 레본 케이드(제이슨 스타뎀)는 평범한 건설 노동자로 살아가며 딸과 함께 조용한 삶을 추구하고 있었으나 그의 상사의 딸이 인신매매 조직에 의해 납치되면서, 다시 과거의 전투 기술을 사용해 그녀를 구하기 위해 나서게 된다. 이 과정에서 시카고의 범죄 조직과 러시아 마피아와 얽히며, 부패와 폭력으로 가득 찬 어두운 세계를 마주하게 되는데...",
+      "status": "Released",
+      "runtime": 116,
+      "vote_average": 6.676,
+      "adult_flag": false,
+      "video_flag": false,
+      "series": null
+    }
+  },
+  {
+    "model": "movies.movie",
+    "pk": 1232546,
+    "fields": {
+      "title": "언틸 던: 무한루프 데스게임",
+      "release_date": "2025-04-23",
+      "poster_path": "https://image.tmdb.org/t/p/w500/vxg728iguFU0lgV4kw1T12n50xc.jpg",
+      "popularity": 350.9981,
+      "tagline": "매일 밤 새로운 공포가 반복된다",
+      "overview": "1년 전, 여동생 멜라니가 흔적도 없이 사라진 후, 클로버는 친구들과 함께 그녀의 마지막 행적이었던 외딴 계곡을 찾아 나선다. 버려진 방문자 센터에서 하룻밤을 보내기로 한 그들은, 정체불명의 가면을 쓴 살인마에게 차례로 희생당한다. 그러나 죽음은 끝이 아니었다. 그들은 다시 그날 저녁으로 돌아오고, 매번 새로운 공포가 그들을 기다리고 있다. 죽음이 반복될수록 희망은 사라지고, 그들은 이 악몽에서 벗어나기 위해 반드시 새벽까지 살아남아야만 하는데...",
+      "status": "Released",
+      "runtime": 103,
+      "vote_average": 6.372,
+      "adult_flag": false,
+      "video_flag": false,
+      "series": null
+    }
+  },
+  {
+    "model": "movies.movie",
+    "pk": 896536,
+    "fields": {
+      "title": "더 레전드 오브 오치",
+      "release_date": "2025-04-18",
+      "poster_path": "https://image.tmdb.org/t/p/w500/wVujUVvY4qvKARAslItQ4ARKqtz.jpg",
+      "popularity": 275.4814,
+      "tagline": "",
+      "overview": "\"마법은 손끝에서 시작된다, 진짜가 만들어낸 판타지\"\r 외딴섬 카르파티아에서 자란 소녀 유리는 밤이 되면 절대 밖에 나가지 말라는 아버지의 가르침 아래, 숲속의 수수께끼 같은 생물 '오치'를 두려워하며 살아간다. 그러던 어느 날, 유리는 덫에 걸려 다친 아기 오치를 발견하고, 그를 가족에게 돌려보내기 위한 여정을 결심한다. 이 모험은 유리에게 자연과의 교감, 가족의 진실, 그리고 자신만의 목소리를 찾는 계기가 되는데...",
+      "status": "Released",
+      "runtime": 95,
+      "vote_average": 6.125,
+      "adult_flag": false,
+      "video_flag": false,
+      "series": null
+    }
+  },
+  {
+    "model": "movies.movie",
+    "pk": 447273,
+    "fields": {
+      "title": "백설공주",
+      "release_date": "2025-03-12",
+      "poster_path": "https://image.tmdb.org/t/p/w500/7EruTgYzDFM8kWhr2ysuuwoXFqk.jpg",
+      "popularity": 270.9714,
+      "tagline": "동화, 그 이상의 마법 같은 이야기",
+      "overview": "눈보라가 몰아치던 겨울 밤 태어난 백설공주. 온정이 넘치던 왕국에서 모두의 사랑을 받았지만, 강력한 어둠의 힘으로 왕국을 빼앗은 여왕의 위협에 숲으로 도망친다. 마법의 숲에서 간신히 살아남은 백설공주는 신비로운 일곱 광부들과 만나게 되며 새로운 세상을 마주하고, 마음속 깊이 숨겨진 용기와 선한 힘을 깨닫게 된다. 그리고 마침내, 빼앗긴 왕국을 되찾기 위해 여왕과 맞서 싸우기로 결심하는데…",
+      "status": "Released",
+      "runtime": 109,
+      "vote_average": 4.306,
+      "adult_flag": false,
+      "video_flag": false,
+      "series": null
+    }
+  },
+  {
+    "model": "movies.movie",
+    "pk": 1241436,
+    "fields": {
+      "title": "워페어",
+      "release_date": "2025-04-09",
+      "poster_path": "https://image.tmdb.org/t/p/w500/srj9rYrjefyWqkLc6l2xjTGeBGO.jpg",
+      "popularity": 264.352,
+      "tagline": "",
+      "overview": "\"실화 기반, 전장의 숨결을 생생히 담아낸 리얼 타임 전쟁 드라마\"  2006년 이라크 라마디. 미 해군 특수부대 네이비 씰 팀이 적진 한복판에서 감시 임무를 수행하던 중, 예상치 못한 상황에 휘말리게 된다. 민가를 점거해 잠복하던 그들은 알카에다 세력의 포위망에 갇히고, 지원은 끊긴 채 생존을 위한 사투를 벌이게 된다. 전직 네이비 씰이자 실제 생존자인 레이 멘도자 감독과 '엑스 마키나', '시빌 워'의 알렉스 가란드 감독이 공동 연출한 이 작품은, 전투의 혼돈과 공포를 실시간으로 그려낸다. 화려한 음악이나 영웅 서사 없이, 전장의 소음과 침묵, 그리고 병사들의 숨결이 화면을 가득 채운다. 실화를 바탕으로 한 이 영화는, 전쟁의 참혹함과 인간의 생존 본능을 적나라하게 보여주며, 관객을 전장의 한가운데로 끌어들인다. 과연 이들은 살아남을 수 있을까...",
+      "status": "Released",
+      "runtime": 95,
+      "vote_average": 7.238,
+      "adult_flag": false,
+      "video_flag": false,
+      "series": null
+    }
+  },
+  {
+    "model": "movies.movie",
+    "pk": 1098006,
+    "fields": {
+      "title": "'젊음의 샘' - Fountain of Youth",
+      "release_date": "2025-05-19",
+      "poster_path": "https://image.tmdb.org/t/p/w500/zmBp7gXBAYXToPRYGmcQbnn2qxK.jpg",
+      "popularity": 261.4704,
+      "tagline": "발견하는 자, 전설의 주인이 된다.",
+      "overview": "보물 사냥의 귀재는 인생을 뒤바꿀 모험을 위해 팀을 꾸린다. 하지만 매 순간 닥치는 위험을 헤쳐 나가기 위해 자신보다 더 뛰어난 두뇌, 바로 소원했던 여동생이 필요하다.",
+      "status": "Released",
+      "runtime": 125,
+      "vote_average": 6.553,
+      "adult_flag": false,
+      "video_flag": false,
+      "series": null
+    }
+  },
+  {
+    "model": "movies.movie",
+    "pk": 278,
+    "fields": {
+      "title": "쇼생크 탈출",
+      "release_date": "1994-09-23",
+      "poster_path": "https://image.tmdb.org/t/p/w500/oAt6OtpwYCdJI76AVtVKW1eorYx.jpg",
+      "popularity": 35.8474,
+      "tagline": "두려움은 너를 죄수로 가두고 희망은 너를 자유롭게 하리라",
+      "overview": "촉망받는 은행 간부 앤디 듀프레인은 아내와 그녀의 정부를 살해했다는 누명을 쓴다. 주변의 증언과 살해 현장의 그럴듯한 증거들로 그는 종신형을 선고받고 악질범들만 수용한다는 지옥같은 교도소 쇼생크로 향한다. 인간 말종 쓰레기들만 모인 그곳에서 그는 이루 말할 수 없는 억압과 짐승보다 못한 취급을 당한다. 그러던 어느 날, 간수의 세금을 면제받게 해 준 덕분에 그는 일약 교도소의 비공식 회계사로 일하게 된다. 그 와중에 교도소 소장은 죄수들을 이리저리 부리면서 검은 돈을 긁어 모으고 앤디는 이 돈을 세탁하여 불려주면서 그의 돈을 관리하는데...",
+      "status": "Released",
+      "runtime": 142,
+      "vote_average": 8.7,
+      "adult_flag": false,
+      "video_flag": false,
+      "series": null
+    }
+  },
+  {
+    "model": "movies.movie",
+    "pk": 238,
+    "fields": {
+      "title": "대부",
+      "release_date": "1972-03-14",
+      "poster_path": "https://image.tmdb.org/t/p/w500/I1fkNd5CeJGv56mhrTDoOeMc2r.jpg",
+      "popularity": 31.6607,
+      "tagline": "영화사상 최고의 걸작",
+      "overview": "시실리에서 이민온 뒤, 정치권까지 영향력을 미치는 거물로 자리잡은 돈 꼴레오네는 갖가지 고민을 호소하는 사람들의 문제를 해결해주며 대부라 불리운다. 한편 솔로소라는 인물은 꼴레오네가와 라이벌인 탓타리아 패밀리와 손잡고 새로운 마약 사업을 제안한다. 돈 꼴레오네가 마약 사업에 참여하지 않기로 하자, 돈 꼴레오네를 저격해 그는 중상을 입고 사경을 헤매게 된다. 그 뒤, 돈 꼴레오네의 아들 소니는 조직력을 총 동원해 다른 패밀리들과 피를 부르는 전쟁을 시작하는데... 가족의 사업과 상관없이 대학에 진학한 뒤 인텔리로 지내왔던 막내 아들 마이클은 아버지가 총격을 당한 뒤, 아버지를 구하기 위해 위험천만한 협상 자리에 나선다.",
+      "status": "Released",
+      "runtime": 175,
+      "vote_average": 8.686,
+      "adult_flag": false,
+      "video_flag": false,
+      "series": 230
+    }
+  },
+  {
+    "model": "movies.movie",
+    "pk": 240,
+    "fields": {
+      "title": "대부 2",
+      "release_date": "1974-12-20",
+      "poster_path": "https://image.tmdb.org/t/p/w500/bhqvqYuAgrTGwyNAmMR0ZVmjXel.jpg",
+      "popularity": 17.0763,
+      "tagline": "대부가 암시하고 예고한 모든 것",
+      "overview": "아버지의 장례식 도중에 맏아들 파올로가 총에 맞아 죽고, 비토(로버트 드니로)는 겨우 도망쳐 미국으로 건너온다. 대부로 성장한 후 비토는 다시 치치오를 찾아 복수를 한다. 새롭게 등장한 젊은 대부 마이클(알 파치노)은 본거지를 라스베가스로 옮기고 가족의 사업을 가능한 합법적인 것으로 바꾸려고 애쓴다. 그런 과중 중에 자신을 제거하려는 음모를 알게되고 그는 냉혹하고 신속하게 반대파들을 제거, 조직을 더욱 확대해 나간다. 이를 위해 마이클은 배신한 형마저 죽이고, 일 때문에 아내와 헤어지는 등 인간적으로는 계속 외로워져 가는데...",
+      "status": "Released",
+      "runtime": 202,
+      "vote_average": 8.57,
+      "adult_flag": false,
+      "video_flag": false,
+      "series": 230
+    }
+  },
+  {
+    "model": "movies.movie",
+    "pk": 424,
+    "fields": {
+      "title": "쉰들러 리스트",
+      "release_date": "1993-12-15",
+      "poster_path": "https://image.tmdb.org/t/p/w500/oyyUcGwLX7LTFS1pQbLrQpyzIyt.jpg",
+      "popularity": 19.4687,
+      "tagline": "한 생명을 구한 자는 세계를 구한 것이다",
+      "overview": "2차 세계대전 당시 독일군이 점령한 폴란드. 시류에 맞춰 자신의 성공을 추구하는 기회주의자 쉰들러는 유태인이 경영하는 그릇 공장을 인수한다. 그는 공장을 인수하기 위해 나찌 당원이 되고 독일군에게 뇌물을 바치는 등 갖은 방법을 동원한다. 그러나 냉혹한 기회주의자였던 쉰들러는 유태인 회계사인 스턴과 친분을 맺으면서 냉혹한 유태인 학살에 대한 양심의 소리를 듣기 시작한다. 마침내 그는 강제 수용소로 끌려가 죽음을 맞게될 유태인들을 구해내기로 결심하고, 독일군 장교에게 빼내는 사람 숫자대로 뇌물을 주는 방법으로 유태인들을 구해내려는 계획을 세우는데...",
+      "status": "Released",
+      "runtime": 195,
+      "vote_average": 8.565,
+      "adult_flag": false,
+      "video_flag": false,
+      "series": null
+    }
+  },
+  {
+    "model": "movies.movie",
+    "pk": 389,
+    "fields": {
+      "title": "12명의 성난 사람들",
+      "release_date": "1957-04-10",
+      "poster_path": "https://image.tmdb.org/t/p/w500/xzh6Rq9cKnE1M309PzC5S5QWF9S.jpg",
+      "popularity": 15.903,
+      "tagline": "",
+      "overview": "뉴욕시의 법정에 아버지를 칼로 찌른 한 소년의 살인혐의를 두고, 12인의 배심원들은 만장일치 합의를 통해 소년의 유무죄 여부를 가려줄 것을 요구받는다. 판사는 유죄일 경우 이 소년은 사형이 불가피하다는 것을 이들에게 미리 일러둔다.  배심원 방에 모인 이들은 투표를 통해 유무죄 여부를 가리기로 한다. 사람들이 전부 소년이 유죄로 판단하는 가운데, 오직 한 배심원만이 소년이 무죄라고 주장하는데...",
+      "status": "Released",
+      "runtime": 97,
+      "vote_average": 8.549,
+      "adult_flag": false,
+      "video_flag": false,
+      "series": null
+    }
+  },
+  {
+    "model": "movies.movie",
+    "pk": 129,
+    "fields": {
+      "title": "센과 치히로의 행방불명",
+      "release_date": "2001-07-20",
+      "poster_path": "https://image.tmdb.org/t/p/w500/aZuBfbR0PnCb2up7lqHDsgJlLjs.jpg",
+      "popularity": 22.5967,
+      "tagline": "금지된 세계의 문이 열렸다",
+      "overview": "평범한 열 살 짜리 소녀 치히로 식구는 이사 가던 중 길을 잘못 들어 낡은 터널을 지나가게 된다. 터널 저편엔 폐허가 된 놀이공원이 있었고 그곳엔 이상한 기운이 흘렀다. 인기척 하나 없는 이 마을의 낯선 분위기에 불길한 기운을 느낀 치히로는 부모님에게 돌아가자고 조르지만 부모님은 호기심에 들떠 마을 곳곳을 돌아다니기 시작한다. 어느 음식점에 도착한 치히로의 부모님은 그 곳에 차려진 음식들을 보고 즐거워하며 허겁지겁 먹어대다가 돼지로 변해버린다. 겁에 질려 당황하는 치히로에게 낯선 소년 하쿠가 나타나 빨리 이곳을 나가라고 소리치는데...",
+      "status": "Released",
+      "runtime": 124,
+      "vote_average": 8.536,
+      "adult_flag": false,
+      "video_flag": false,
+      "series": null
+    }
+  },
+  {
+    "model": "movies.movie",
+    "pk": 155,
+    "fields": {
+      "title": "다크 나이트",
+      "release_date": "2008-07-16",
+      "poster_path": "https://image.tmdb.org/t/p/w500/f6dNinWX8rBM79JXKcShkfSh2oA.jpg",
+      "popularity": 30.3764,
+      "tagline": "이 도시에 정의는 죽었다",
+      "overview": "범죄와 부정부패를 제거하여 고담시를 지키려는 배트맨. 그는 짐 고든 형사와 패기 넘치는 고담시 지방 검사 하비 덴트와 함께 도시를 범죄 조직으로부터 영원히 구원하고자 한다. 세 명의 의기투합으로 위기에 처한 악당들이 모인 자리에 보라색 양복을 입고 얼굴에 짙게 화장을 한 괴이한 존재가 나타나 배트맨을 죽이자는 사상 초유의 제안을 한다. 그는 바로 어떠한 룰도, 목적도 없는 사상 최악의 악당 미치광이 살인광대 조커. 배트맨을 죽이고 고담시를 끝장내버리기 위한 조커의 광기 어린 행각에 도시는 혼란에 빠지는데...",
+      "status": "Released",
+      "runtime": 152,
+      "vote_average": 8.519,
+      "adult_flag": false,
+      "video_flag": false,
+      "series": 263
+    }
+  },
+  {
+    "model": "movies.movie",
+    "pk": 19404,
+    "fields": {
+      "title": "용감한 자가 신부를 데려가리",
+      "release_date": "1995-10-20",
+      "poster_path": "https://image.tmdb.org/t/p/w500/2CAL2433ZeIihfX1Hb2139CX0pW.jpg",
+      "popularity": 8.4769,
+      "tagline": "",
+      "overview": "영국에서 유학중인 라즈(샤룩 칸)와 인도 처녀 심란(까졸).  심란은 부모님이 정해주신 약혼자가 있는데 약혼을 앞두고 친구들과 유럽 여행을 떠나게 된다.  여행 중 우연히 만남 샤룩과 까졸. 두 남녀의 연속된 우연과 좌충우돌 사랑 만들기.  그렇게 사랑하게 된 그들이지만 까졸은 약혼자가 있는 몸. 인도로 돌아가게 된다.  샤룩 또한 그녀를 못 잊어 인도로 뒤 따라 들어가지만 엄격한 까졸의 부모를 설득하기가 힘이 든다. 도망가자는 까졸의 제안을 거부하고 샤룩은 끝내 그녀의 부모님의 허락을 얻어 내기 위해 고군분투한다.",
+      "status": "Released",
+      "runtime": 190,
+      "vote_average": 8.516,
+      "adult_flag": false,
+      "video_flag": false,
+      "series": null
+    }
+  },
+  {
+    "model": "movies.movie",
+    "pk": 497,
+    "fields": {
+      "title": "그린 마일",
+      "release_date": "1999-12-10",
+      "poster_path": "https://image.tmdb.org/t/p/w500/yuSpRhrTIJa5JN8oESrfD2bndp1.jpg",
+      "popularity": 17.9582,
+      "tagline": "",
+      "overview": "미국 루이지애나의 콜드 마운틴 교도소. 폴은 사형수 감방의 간수장으로 일하고 있다. 그의 일은 사형수들을 감독하고, 그린 마일이라 불리는 초록색 복도를 거쳐 그들을 사형 집행장까지 안내하는 것. 폴은 그들이 죽음을 맞이하는 순간까지 평화롭게 지낼 수 있도록 최선을 다한다. 어느 날 존 커피라는 사형수가 이송되어 온다. 그는 쌍둥이 여자아이를 살해한 흉악범. 하지만 순진한 눈망울에 겁을 잔뜩 집어먹은 그의 모습에 폴은 당혹감을 느낀다. 게다가 그는 초자연적 능력으로 폴의 지병을 깨끗하게 치료해주기까지 한다. 존을 전기 의자로 데려가야 할 날이 다가오면서 폴은 그가 무죄라는 확신을 갖게 되는데...",
+      "status": "Released",
+      "runtime": 189,
+      "vote_average": 8.505,
+      "adult_flag": false,
+      "video_flag": false,
+      "series": null
+    }
+  },
+  {
+    "model": "movies.movie",
+    "pk": 496243,
+    "fields": {
+      "title": "기생충",
+      "release_date": "2019-05-30",
+      "poster_path": "https://image.tmdb.org/t/p/w500/mSi0gskYpmf1FbXngM37s2HppXh.jpg",
+      "popularity": 27.2988,
+      "tagline": "행복은 나눌수록 커지잖아요",
+      "overview": "전원 백수로 살 길 막막하지만 사이는 좋은 기택 가족. 장남 기우에게 명문대생 친구가 연결시켜 준 고액 과외 자리는 모처럼 싹튼 고정수입의 희망이다. 온 가족의 도움과 기대 속에 박 사장 집으로 향하는 기우. 글로벌 IT기업의 CEO인 박 사장의 저택에 도착하자 젊고 아름다운 사모님 연교와 가정부 문광이 기우를 맞이한다. 큰 문제 없이 박 사장의 딸 다혜의 과외를 시작한 기우. 그러나 이렇게 시작된 두 가족의 만남 뒤로, 걷잡을 수 없는 사건이 기다리고  있는데.....",
+      "status": "Released",
+      "runtime": 131,
+      "vote_average": 8.499,
+      "adult_flag": false,
+      "video_flag": false,
+      "series": null
+    }
+  },
+  {
+    "model": "movies.movie",
+    "pk": 11544,
+    "fields": {
+      "title": "릴로 & 스티치",
+      "release_date": "2002-06-21",
+      "poster_path": "https://image.tmdb.org/t/p/w500/3Ila1FBT3IUeSvD1PCuxMJphHt0.jpg",
+      "popularity": 152.4784,
+      "tagline": "전세계를 뒤흔들 스타 탄생",
+      "overview": "하와이 섬에서 언니 나니와 함께 사는 외톨이 소녀 릴로는 엘비스 프레슬리의 노래를 즐기고 훌라춤을 추며 씩씩하게 하루하루를 살아가는 사랑스런 아이. 늘 친구 하나 만들기가 소원이었던 릴로는 동물보호소에서 스티치를 만나게 되자 그를 집으로 데려간다. 릴로에겐 그저 귀여울 뿐인 강아지로 보이지만 사실 스티치는 투로 행성의 실험용 외계 생명체. 은하계 감옥으로 끌려가던 중 도망치다가 그만 지구에 불시착한 것이다. 투로 행성의 스티치 추격대가 지구로 날아오고 스티치는 갖은 꾀로 그들의 추적을 피해다닌다.",
+      "status": "Released",
+      "runtime": 85,
+      "vote_average": 7.543,
+      "adult_flag": false,
+      "video_flag": false,
+      "series": 97461
+    }
+  },
+  {
+    "model": "movies.movie",
+    "pk": 9532,
+    "fields": {
+      "title": "데스티네이션",
+      "release_date": "2000-03-17",
+      "poster_path": "https://image.tmdb.org/t/p/w500/kPqTDpKN3lkteEV1OegqpZ6GHL6.jpg",
+      "popularity": 91.3426,
+      "tagline": "바꾸려 하지마라! 죽음은 예정대로 움직인다!",
+      "overview": "알렉스 브라우닝은 그의 고등학교 불어반 친구들과 파리로 출발하려는 순간, 비행기안에서 강렬한 환영을 경험하게 된다. 바로 비행기가 출발과 동시에 폭발하는 모습을 생생하게 본 것. 그는 모두 곧 비행기에서 내릴 것을 주장하고, 한차례 혼란이 있은 후에 알렉스를 포함한 7명이 비행기에서 내리게 된다. 공항 라운지로 돌아왔을 때, 알렉스와 그의 친구인 빌리와 토드, 알렉스를 본능적으로 따른 클레어, 알렉스를 비웃음거리로 만들려는 카터와 그녀의 여자친구 테리, 그리고 학생보호를 위하여 비행기에서 내린 류턴 선생까지 7명의 사람들은 엄청난 비행기 폭발을 직접 목격한다. 하지만 사건후 오히려 생존자들은 알렉스의 무시무시한 예지력에 공포를 느끼고, 또한 FBI는 그에게 의혹의 눈초리를 보낸다. 스스로 혼란에 빠진 알렉스는 어찌되었든 그를 비롯한 생존자들이 쉽게 말해서 자신들에게 다가온 죽음의 운명을 속였고, 이러한 자신들의 운명이 오래가지 못함을 알게 된다. 하지만 클레어를 제외한 생존자중 누구도 알렉스를 믿지않고, 이들에게 죽음의 사신이 다가온다.",
+      "status": "Released",
+      "runtime": 98,
+      "vote_average": 6.618,
+      "adult_flag": false,
+      "video_flag": false,
+      "series": 8864
+    }
+  },
+  {
+    "model": "movies.movie",
+    "pk": 9286,
+    "fields": {
+      "title": "파이널 데스티네이션",
+      "release_date": "2006-02-09",
+      "poster_path": "https://image.tmdb.org/t/p/w500/gGSZPvotlWff9CE2eqNTBkzxIYl.jpg",
+      "popularity": 55.8087,
+      "tagline": "멈출 수 있는가? 죽음을 부르는 7개의 징후",
+      "overview": "고등학교 졸업을 앞두고 인생의 황금기를 즐기고 있는 웬디. 웬디는 친구들과 함께 졸업 기념으로 놀이공원에 놀러 가기로 한다. 놀이공원의 하이라이트 롤러코스터에 타려는 순간, 웬디는 갑자기 불길한 예감에 휩싸인다. 남자친구인 제이슨은 신경과민이라며 그녀를 안심시키지만, 롤러코스터에 앉아 안전벨트가 내려오자마자 자신과 친구들 모두가 탄 롤러코스터가 끔찍한 사고로 전복되는 장면이 웬디의 눈앞에 생생히 스쳐간다.  롤러코스터가 출발하기 직전 이 섬뜩한 환상에서 깬 웬디는 겁에 질려 열차에서 내리려 하고 그녀의 옆자리에 앉아있던 케빈도 이런 웬디를 보고 따라 내리게 된다. 두 사람을 겁쟁이라고 놀리는 같은 반 친구 루이스. 말싸움은 주먹다짐으로 번지고 롤러코스터가 아수라장이 되자 이들은 모두 열차에서 쫓겨나고 만다. 어수선한 가운데 롤러코스터가 출발하고, 이를 지켜보던 웬디의 눈앞에서 그녀의 악몽 같은 예감은 현실로 드러난다. 엄청난 속도로 질주하던 롤러코스터가 탈선해 사람들이 모두 땅으로 곤두박질친 것. 하지만 이건 시작에 불과하다!",
+      "status": "Released",
+      "runtime": 92,
+      "vote_average": 6.122,
+      "adult_flag": false,
+      "video_flag": false,
+      "series": 8864
+    }
+  },
+  {
+    "model": "movies.movie",
+    "pk": 19912,
+    "fields": {
+      "title": "파이널 데스티네이션 4",
+      "release_date": "2009-08-26",
+      "poster_path": "https://image.tmdb.org/t/p/w500/pRckgFI7EhfrkyXgczs93erGWEo.jpg",
+      "popularity": 53.4346,
+      "tagline": "죽음과 맞서라!",
+      "overview": "자동차 레이싱 대회 관중석에 앉아있던 닉은 갑자기 불길한 전조를 본다. 레이싱 카들이 연쇄 충돌을 일으켜 날아온 파편에 친구들이 죽고 무너진 건물이 자기를 덮치는 끔찍한 환상! 악몽에서 깨어난 닉이 친구들을 끌고 경기장을 막 빠져 나온 찰나, 닉의 환상은 현실로 이어진다. 닉과 친구들은 아슬아슬하게 죽음을 피하지만 이는 시작에 불과했다. 불길한 죽음의 환상은 계속해서 닉을 찾아오고, 사고에서 살아남은 사람들은 갈수록 끔찍한 방법으로 차례차례 죽음을 맞는다. 닉은 친구들의 죽음을 막으려 하지만 자신도 마지막 운명에 이르기 전에 다시 한번 죽음에서 벗어날 방법을 찾아야만 한다!",
+      "status": "Released",
+      "runtime": 82,
+      "vote_average": 5.608,
+      "adult_flag": false,
+      "video_flag": false,
+      "series": 8864
+    }
+  },
+  {
+    "model": "movies.movie",
+    "pk": 55779,
+    "fields": {
+      "title": "파이널 데스티네이션 5",
+      "release_date": "2011-08-12",
+      "poster_path": "https://image.tmdb.org/t/p/w500/5sRZVerkpfZmyBqgma6v0qMlvUA.jpg",
+      "popularity": 83.8815,
+      "tagline": "아직도 살아있는가? 죽음의 규칙이 달라졌다!",
+      "overview": "1박 2일의 워크숍을 떠나는 버스 안에서 다리가 붕괴되는 끔찍한 사고로 자신과 동료들을 비롯해 수많은 이들이 죽는 환영을 본 샘. 곧이어 거짓말처럼 실제로 사고가 재현되고, 혼란 속에서 최대한 많은 사람들을 구해낸다. 그러나 그들은 죽었어야 하는 운명! 어김없이 찾아온 사신과의 싸움을 시작한 그들은 마침내 “타인의 생명을 이용하면 살아날 수 있다”는 달라진 죽음의 규칙을 찾아 내는데…",
+      "status": "Released",
+      "runtime": 91,
+      "vote_average": 6.124,
+      "adult_flag": false,
+      "video_flag": false,
+      "series": 8864
+    }
+  },
+  {
+    "model": "movies.movie",
+    "pk": 24428,
+    "fields": {
+      "title": "어벤져스",
+      "release_date": "2012-04-25",
+      "poster_path": "https://image.tmdb.org/t/p/w500/krgjV3rJtBcEpQehODKXNCt6uFL.jpg",
+      "popularity": 43.7465,
+      "tagline": "최강의 슈퍼히어로들이 모였다.",
+      "overview": "에너지원 큐브를 이용한 적의 등장으로 인류가 위험에 처하자 국제평화유지기구인 쉴드의 국장 닉 퓨리는 어벤져스 작전을 위해 전 세계에 흩어져 있던 슈퍼히어로들을 찾아나선다. 아이언맨부터 토르, 헐크, 캡틴 아메리카는 물론, 쉴드의 요원인 블랙 위도우, 호크 아이까지, 최고의 슈퍼히어로들이 어벤져스의 멤버로 모이게 되지만, 각기 개성이 강한 이들의 만남은 예상치 못한 방향으로 흘러가는데...",
+      "status": "Released",
+      "runtime": 142,
+      "vote_average": 7.752,
+      "adult_flag": false,
+      "video_flag": false,
+      "series": 86311
+    }
+  },
+  {
+    "model": "movies.movie",
+    "pk": 157336,
+    "fields": {
+      "title": "인터스텔라",
+      "release_date": "2014-11-05",
+      "poster_path": "https://image.tmdb.org/t/p/w500/evoEi8SBSvIIEveM3V6nCJ6vKj8.jpg",
+      "popularity": 38.2921,
+      "tagline": "우린 답을 찾을 것이다, 늘 그랬듯이",
+      "overview": "세계 각국의 정부와 경제가 완전히 붕괴된 미래가 다가온다. 지난 20세기에 범한 잘못이 전 세계적인 식량 부족을 불러왔고, NASA도 해체되었다. 나사 소속 우주비행사였던 쿠퍼는 지구에 몰아친 식량난으로 옥수수나 키우며 살고 있다. 거센 황사가 몰아친 어느 날 알 수 없는 힘에 이끌려 딸과 함께 도착한 곳은 인류가 이주할 행성을 찾는 나사의 비밀본부. 이 때 시공간에 불가사의한 틈이 열리고, 이 곳을 탐험해 인류를 구해야 하는 임무를 위해 쿠퍼는 만류하는 딸을 뒤로한 채 우주선에 탑승하는데...",
+      "status": "Released",
+      "runtime": 169,
+      "vote_average": 8.454,
+      "adult_flag": false,
+      "video_flag": false,
+      "series": null
+    }
+  },
+  {
+    "model": "movies.movie",
+    "pk": 353081,
+    "fields": {
+      "title": "미션 임파서블: 폴아웃",
+      "release_date": "2018-07-13",
+      "poster_path": "https://image.tmdb.org/t/p/w500/u8gdbmvbypmVmoCJyPkBiJyvAvv.jpg",
+      "popularity": 38.8675,
+      "tagline": "예측 할 수 없는 미션, 피할 수 없는 선택",
+      "overview": "에단 헌트는 세계를 위협하는 테러 조직 신디케이트의 수장 솔로몬 레인을 우여곡절 끝에 체포했지만, 그의 잔당들은 여전히 세계 각지에서 테러를 일삼는다. 에단 헌트와 그의 팀은 테러조직의 핵무기 소지를 막기 위해 미션에 착수한다. 에단 헌트는 작전 수행 중 예상치 못한 결단을 내리게 되고, 중앙정보국 CIA는 그를 견제하기 위해 상급 요원 어거스트 워커를 파견한다. 최악의 테러 위기와 라이벌의 출현 속, 팀이 행한 모든 선의의 선택들이 최악의 결과로 돌아오면서 미션은 점점 더 예측할 수 없는 상황으로 치닫게 되는데...",
+      "status": "Released",
+      "runtime": 147,
+      "vote_average": 7.4,
+      "adult_flag": false,
+      "video_flag": false,
+      "series": 87359
+    }
+  },
+  {
+    "model": "movies.movie",
+    "pk": 299536,
+    "fields": {
+      "title": "어벤져스: 인피니티 워",
+      "release_date": "2018-04-25",
+      "poster_path": "https://image.tmdb.org/t/p/w500/kmP6viwzcEkZeoi1LaVcQemcvZh.jpg",
+      "popularity": 37.1141,
+      "tagline": "영화의 역사를 뒤바꿀 마블의 클라이맥스!",
+      "overview": "타노스는 6개의 인피니티 스톤을 획득해 신으로 군림하려 한다. 그것은 곧 인류의 절반을 학살해 우주의 균형을 맞추겠다는 뜻. 타노스는 닥터 스트레인지가 소유한 타임 스톤, 비전의 이마에 박혀 있는 마인드 스톤을 차지하기 위해 지구를 침략한다. 아이언맨과 스파이더맨은 가디언즈 오브 갤럭시의 멤버들과 타노스를 상대한다. 지구에선 캡틴 아메리카, 완다, 블랙 위도우, 블랙 팬서 등이 비전을 지키기 위해 뭉친다.",
+      "status": "Released",
+      "runtime": 149,
+      "vote_average": 8.2,
+      "adult_flag": false,
+      "video_flag": false,
+      "series": 86311
+    }
+  },
+  {
+    "model": "movies.movie",
+    "pk": 269149,
+    "fields": {
+      "title": "주토피아",
+      "release_date": "2016-02-11",
+      "poster_path": "https://image.tmdb.org/t/p/w500/fZcab1yiKXsjx3S8D4KRHZsnMGC.jpg",
+      "popularity": 30.2497,
+      "tagline": "정글의 도시에 오신것을 환영합니다",
+      "overview": "어릴 적부터 경찰이 꿈이었던 토끼 주디 홉스는 주변의 만류에도 불구하고 경찰학교에 들어가 당당히 수석으로 졸업한다. 온갖 동물들이 모여 살며 교양 있고 세련된 라이프 스타일을 주도하는 대도시 주토피아에 자원한 주디는 의욕을 안고 출근하지만, 상사는 작은 토끼라는 이유로 주차관리 같은 소일거리만 시킨다. 따분하게 업무를 보던 주디는 아이스크림 불법 판매를 일삼는 사기꾼 여우 닉 와일드를 알게 되고, 그와 함께  48시간 안에 주토피아에서 벌어지고 있는 연쇄 실종사건을 추적해야만 하는데...",
+      "status": "Released",
+      "runtime": 108,
+      "vote_average": 7.748,
+      "adult_flag": false,
+      "video_flag": false,
+      "series": 1084247
+    }
+  }
+]

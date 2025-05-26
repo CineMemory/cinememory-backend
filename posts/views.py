@@ -5,6 +5,7 @@ from rest_framework.decorators import permission_classes
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Post, Comment
+from django.db.models import Count
 
 # 페이지네이션 설정 필요 -> 한 번에 몇 개 보일건지
 @api_view(['GET'])
@@ -13,7 +14,27 @@ def post_list(request):
     """
     포스트 목록 조회 API - 최신순 정렬
     """
-    posts = Post.objects.select_related('user').prefetch_related('tags').order_by('-created_at')
+    # 정렬 파라미터 가져오기
+    sort_by = request.GET.get('sort', 'latest')
+    
+    # 기본 쿼리셋
+    posts = Post.objects.select_related('user').prefetch_related('tags')
+    
+    # 정렬 적용
+    if sort_by == 'latest':
+        posts = posts.order_by('-created_at')
+    elif sort_by == 'popular':
+        posts = posts.annotate(
+            like_count_field=Count('like_users')
+        ).order_by('-like_count_field', '-created_at')
+    elif sort_by == 'comments':
+        posts = posts.annotate(
+            comment_count_field=Count('comment')
+        ).order_by('-comment_count_field', '-created_at')
+    else:
+        # 기본값은 최신순
+        posts = posts.order_by('-created_at')
+    
     serializer = PostListSerializer(posts, many=True)
     return Response(serializer.data)
 

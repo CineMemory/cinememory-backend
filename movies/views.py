@@ -40,3 +40,34 @@ def person_detail(request, person_id):
             {'error': '사람을 찾을 수 없습니다.'}, 
             status=404
         )
+
+@api_view(['GET'])
+def search_some(request):
+    search_query = request.GET.get('search', '')
+    
+    if not search_query:
+        return Response(status=204)
+    
+    try:
+        if Movie.objects.filter(title__icontains=search_query).exists():
+            movies = Movie.objects.filter(title__icontains=search_query)
+            serializer = MovieSerializer(movies, many=True)
+            return Response(serializer.data)
+        elif Actor.objects.filter(name__icontains=search_query).exists():
+            actors = Actor.objects.filter(name__icontains=search_query)
+            serializer = ActorSerializer(actors, many=True)
+            return Response(serializer.data)
+        elif Director.objects.filter(name__icontains=search_query).exists():
+            directors = Director.objects.filter(name__icontains=search_query)
+            serializer = DirectorSerializer(directors, many=True)
+            return Response(serializer.data)
+        else:
+            return Response(
+                {'error': '검색 결과를 찾을 수 없습니다.'}, 
+                status=404
+            )
+    except Exception as e:
+        return Response(
+            {'error': '검색 중 오류가 발생했습니다.'}, 
+            status=500
+        )

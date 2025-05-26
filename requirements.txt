@@ -16,6 +16,7 @@ inflection==0.5.1
 jsonschema==4.23.0
 jsonschema-specifications==2025.4.1
 oauthlib==3.2.2
+pillow==11.2.1
 pycparser==2.22
 pyjwt==2.9.0
 pyyaml==6.0.2

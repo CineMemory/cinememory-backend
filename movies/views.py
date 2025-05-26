@@ -105,7 +105,6 @@ def review_movie(request, movie_id):
         
         return Response({
             'review': MovieReviewSerializer(review).data,
-            'message': '리뷰가 등록되었습니다.',
         })
         
     except Movie.DoesNotExist:
@@ -143,7 +142,6 @@ def review_person(request, person_id):
         
         return Response({
             'review': ActorReviewSerializer(review).data if Actor.objects.filter(actor_id=person_id).exists() else DirectorReviewSerializer(review).data,
-            'message': '사람 리뷰가 등록되었습니다.',
         })
         
     except (Actor.DoesNotExist, Director.DoesNotExist):

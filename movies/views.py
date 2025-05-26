@@ -11,7 +11,11 @@ from rest_framework import status
 # Create your views here.
 @api_view(['GET'])
 def movie_detail(request, movie_id):
+    print(f'요청된 movie_id: {movie_id}')
     try:
+        movie = Movie.objects.get(movie_id=movie_id)
+        print(f'영화 찾음: {movie.title}')
+
         # 관계 데이터를 효율적으로 가져오기 위한 최적화
         movie = Movie.objects.select_related('series').prefetch_related(
             'genres', 'directors', 'actors', 'like_users'
@@ -19,11 +23,10 @@ def movie_detail(request, movie_id):
         
         serializer = MovieSerializer(movie)
         return Response(serializer.data)
-    except Movie.DoesNotExist:
-        return Response(
-            {'error': '영화를 찾을 수 없습니다.'}, 
-            status=404
-        )
+    except Exception as e:
+        print(f'에러 발생: {e}')
+        raise
+    
         
 @api_view(['GET'])
 def person_detail(request, person_id):
@@ -85,19 +88,24 @@ def review_movie(request, movie_id):
     try:
         movie = Movie.objects.get(movie_id=movie_id)
         content = request.data.get('content', '')
+        rating = request.data.get('raging', 0)
         
         if not content:
             return Response({'error': '리뷰 내용을 입력해주세요.'}, status=400)
+
+        if not (0 <= float(rating) <=5):
+            return Response({'error': '별점은 0~5점 사이여야 합니다.'}, status=400) 
         
         # MovieReview 모델 사용
         review, created = MovieReview.objects.get_or_create(
             user=request.user,
             movie=movie,
-            defaults={'content': content}
+            defaults={'content': content, 'rating': rating}
         )
         
         if not created:
             review.content = content
+            review.rating = rating
             review.save()
         
         # 리뷰 사용자 목록에 추가
@@ -286,4 +294,32 @@ def review_person_detail(request, person_id, review_id):
             
     except (ActorReview.DoesNotExist, DirectorReview.DoesNotExist):
         return Response({'error': '리뷰를 찾을 수 없습니다.'}, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def user_liked_movies(request):
+    """사용자가 좋아요한 영화 목록"""
+    try:
+        liked_movies = request.user.liked_movies.all()
+        serializer = MovieListSerializer(liked_movies, many=True)
+        return Response({
+            'liked_movies': serializer.data,
+            'count': liked_movies.count()
+        })
+    except Exception as e:
+        return Response({'error': '데이터를 불러올 수 없습니다.'}, status=500)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def user_reviews(request):
+    """사용자가 작성한 리뷰 목록"""
+    try:
+        movie_reviews = MovieReview.objects.filter(user=request.user).select_related('movie').order_by('-created_at')
+        serializer = MovieReviewSerializer(movie_reviews, many=True)
+        return Response({
+            'reviews': serializer.data,
+            'count': movie_reviews.count()
+        })
+    except Exception as e:
+        return Response({'error': '데이터를 불러올 수 없습니다.'}, status=500)
     

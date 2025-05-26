@@ -12,5 +12,7 @@ urlpatterns = [
     path('person/review/<int:person_id>/<int:review_id>/', views.review_person_detail, name='reviewPersonDetail'),
     path('like/<int:movie_id>/', views.like_movie, name='likeMovie'),
     path('person/like/<int:person_id>/', views.like_person, name='likePerson'),
+    path('user/liked/', views.user_liked_movies, name='userLikedMovies'),
+    path('user/reviews/', views.user_reviews, name='userReviews'),
 ]
 

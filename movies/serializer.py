@@ -45,8 +45,20 @@ class ActorSerializer(serializers.ModelSerializer): # 배우 상세 페이지 �
     def get_review_count(self, obj):  # 배우의 리뷰 수
         return obj.review_users.count()
     
-    def get_reviews(self, obj):  # 배우의 리뷰 목록
-        return obj.review_users.all()
+    def get_reviews(self, obj):
+        from .models import MovieReview, Movie  # 순환 import 방지
+    
+        # obj 타입 확인 및 디버깅
+        if not isinstance(obj, Movie):
+            print(f"❌ get_reviews: Expected Movie, got {type(obj)}: {obj}")
+            return []
+    
+        try:
+            reviews = MovieReview.objects.filter(movie=obj).select_related('user').order_by('-created_at')[:5]
+            return MovieReviewSerializer(reviews, many=True).data
+        except Exception as e:
+            print(f"❌ get_reviews error: {e}")
+            return []
     
 class DirectorSerializer(serializers.ModelSerializer): # 감독 상세 페이지 들어갔을 때 정보
     movies = serializers.SerializerMethodField()
@@ -125,6 +137,7 @@ class MovieSerializer(serializers.ModelSerializer): # 영화 상세 페이지 �
     is_liked = serializers.SerializerMethodField()
     review_count = serializers.SerializerMethodField()
     reviews = serializers.SerializerMethodField()
+    average_rating = serializers.SerializerMethodField()
 
     class Meta:
         model = Movie
@@ -156,13 +169,28 @@ class MovieSerializer(serializers.ModelSerializer): # 영화 상세 페이지 �
         movie_watch_providers = MovieWatchProvider.objects.filter(movie=obj).order_by('display_priority')
         return MovieWatchProviderSerializer(movie_watch_providers, many=True).data
 
+    def get_average_rating(self, obj):
+        """영화의 평균 별점 계산"""
+        from django.db.models import Avg
+        from .models import MovieReview
+        avg = MovieReview.objects.filter(movie=obj).aggregate(Avg('rating'))['rating__avg']
+        return round(avg, 1) if avg else 0.0
+
 
 class MovieReviewSerializer(serializers.ModelSerializer):
     user = serializers.StringRelatedField(read_only=True)
+    user_profile = serializers.SerializerMethodField()  # 사용자 프로필 정보 추가
     
     class Meta:
         model = MovieReview
-        fields = '__all__'
+        fields = ['id', 'user', 'user_profile', 'content', 'rating', 'created_at', 'updated_at']  # rating 추가
+        
+    def get_user_profile(self, obj):
+        """사용자 프로필 정보 (아바타 등)"""
+        return {
+            'username': obj.user.username,
+            'profile_image_url': obj.user.profile_image_url,
+        }
         
 class ActorReviewSerializer(serializers.ModelSerializer):
     user = serializers.StringRelatedField(read_only=True)

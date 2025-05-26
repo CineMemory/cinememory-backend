@@ -263,25 +263,7 @@ def toggle_like(request, post_id):
     """
     포스트 좋아요 토글 API
     """
-    # try:
-    #     post = Post.objects.get(id=post_id)
-    #     if post.like_users.filter(id=request.user.id).exists():
-    #         post.like_users.remove(request.user)
-    #         return Response(
-    #             {'message': '좋아요가 취소되었습니다.'}, 
-    #             status=status.HTTP_204_NO_CONTENT
-    #         )
-    #     else:
-    #         post.like_users.add(request.user)
-    #         return Response(
-    #             {'message': '좋아요가 추가되었습니다.'}, 
-    #             status=status.HTTP_201_CREATED
-    #         )
-    # except Post.DoesNotExist:
-    #     return Response(
-    #         {'error': '포스트를 찾을 수 없습니다.'}, 
-    #         status=status.HTTP_404_NOT_FOUND
-    #     )
+
     
     try:
         post = Post.objects.get(id=post_id)
@@ -315,4 +297,73 @@ def toggle_like(request, post_id):
         return Response(
             {'error': '포스트를 찾을 수 없습니다.'}, 
             status=status.HTTP_404_NOT_FOUND
+        )
+        
+@api_view(['GET'])
+@permission_classes([])
+def tag_list(request):
+    try:
+        tags = Tag.objects.annotate(
+            post_count=Count('post')
+        ).filter(
+            post_count__gt=0
+        ).order_by('-post_count', 'name')
+        
+        # 태그 데이터 직렬화
+        tag_data = []
+        for tag in tags:
+            tag_data.append({
+                'id': tag.id,
+                'name': tag.name,
+                'post_count': tag.post_count
+            })
+        
+        return Response(tag_data, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        return Response(
+            {'error': '태그 목록을 불러오는 중 오류가 발생했습니다.'}, 
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+# 특정 태그의 게시글 조회
+@api_view(['GET'])
+@permission_classes([])  # 인증 불필요
+def posts_by_tag(request, tag_name):
+    """
+    특정 태그가 포함된 게시글 목록 조회 API
+    """
+    try:
+        # 태그 이름으로 태그 찾기
+        try:
+            tag = Tag.objects.get(name=tag_name)
+        except Tag.DoesNotExist:
+            return Response(
+                {'error': f'"{tag_name}" 태그를 찾을 수 없습니다.'}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # 해당 태그가 포함된 게시글들 조회 (최신순)
+        posts = Post.objects.filter(
+            tags=tag
+        ).select_related('user').prefetch_related('tags', 'like_users').order_by('-created_at')
+        
+        # PostListSerializer 사용해서 직렬화
+        serializer = PostListSerializer(posts, many=True)
+        
+        # 응답 데이터 구성
+        response_data = {
+            'tag': {
+                'name': tag.name,
+                'post_count': posts.count()
+            },
+            'posts': serializer.data
+        }
+        
+        return Response(response_data, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        return Response(
+            {'error': '태그별 게시글을 불러오는 중 오류가 발생했습니다.'}, 
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )

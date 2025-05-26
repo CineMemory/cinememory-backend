@@ -1,11 +1,14 @@
 from rest_framework.decorators import api_view
 from .serializer import PostSerializer, PostListSerializer, CommentSerializer
+from .models import Tag
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import permission_classes
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Post, Comment
-from django.db.models import Count
+from django.db.models import Count, Q
+from django.contrib.auth import get_user_model
+from datetime import datetime, timedelta
 
 # 페이지네이션 설정 필요 -> 한 번에 몇 개 보일건지
 @api_view(['GET'])
@@ -451,3 +454,103 @@ def posts_by_tag(request, tag_name):
             {'error': '태그별 게시글을 불러오는 중 오류가 발생했습니다.'}, 
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+
+User = get_user_model()
+
+@api_view(['GET'])
+@permission_classes([])
+def community_stats(request):
+    """
+    커뮤니티 통계 API
+    """
+    try:
+        # 가입 회원 수
+        total_users = User.objects.count()
+        
+        # 오늘 가입한 회원 수
+        today = datetime.now().date()
+        today_users = User.objects.filter(date_joined__date=today).count()
+        
+        # 전체 게시글 수
+        total_posts = Post.objects.count()
+        
+        # 오늘 작성된 게시글 수
+        today_posts = Post.objects.filter(created_at__date=today).count()
+        
+        # 전체 댓글 수
+        total_comments = Comment.objects.count()
+        
+        # 오늘 작성된 댓글 수
+        today_comments = Comment.objects.filter(created_at__date=today).count()
+        
+        # 최신 게시글 5개
+        recent_posts = Post.objects.select_related('user').order_by('-created_at')[:5]
+        recent_posts_data = []
+        for post in recent_posts:
+            recent_posts_data.append({
+                'id': post.id,
+                'title': post.title[:30] + '...' if len(post.title) > 30 else post.title,
+                'author': post.user.username,
+                'created_at': post.created_at.isoformat(),
+                'comment_count': post.comment_set.count(),
+                'like_count': post.like_users.count()
+            })
+        
+        # 최신 댓글 5개
+        recent_comments = Comment.objects.select_related('user', 'post').order_by('-created_at')[:5]
+        recent_comments_data = []
+        for comment in recent_comments:
+            recent_comments_data.append({
+                'id': comment.id,
+                'content': comment.content[:50] + '...' if len(comment.content) > 50 else comment.content,
+                'author': comment.user.username,
+                'post_title': comment.post.title[:20] + '...' if len(comment.post.title) > 20 else comment.post.title,
+                'post_id': comment.post.id,
+                'created_at': comment.created_at.isoformat()
+            })
+        
+        # 인기 태그 10개 (게시글 수 기준)
+        popular_tags = Tag.objects.annotate(
+            post_count=Count('post')
+        ).filter(post_count__gt=0).order_by('-post_count')[:10]
+        
+        popular_tags_data = []
+        for tag in popular_tags:
+            popular_tags_data.append({
+                'id': tag.id,
+                'name': tag.name,
+                'post_count': tag.post_count
+            })
+        
+        # 응답 데이터 구성
+        stats_data = {
+            'users': {
+                'total': total_users,
+                'today': today_users
+            },
+            'posts': {
+                'total': total_posts,
+                'today': today_posts
+            },
+            'comments': {
+                'total': total_comments,
+                'today': today_comments
+            },
+            'recent_posts': recent_posts_data,
+            'recent_comments': recent_comments_data,
+            'popular_tags': popular_tags_data,
+            'last_updated': datetime.now().isoformat()
+        }
+        
+        return Response({
+            'status': 'success',
+            'data': stats_data
+        }, status=status.HTTP_200_OK)
+    
+    except Exception as e:
+      return Response(
+        { 'error': f'통계 데이터를 불러오는 중 오류가 발생했습니다: {str(e)}'},
+        status=status.HTTP_500_INTERNAL_SERVER_ERROR
+      )
+        
+   

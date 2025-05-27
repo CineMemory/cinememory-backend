@@ -1,8 +1,10 @@
+from django.conf import settings
 from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from .models import Movie, Actor, Director, MovieReview, MovieProvider, Provider
 from .serializer import DirectorBasicSerializer, MovieReviewSerializer, MovieSerializer, ActorSerializer, DirectorSerializer, MovieListSerializer, ActorBasicSerializer, MovieProviderSerializer
+
 from rest_framework.decorators import permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
@@ -111,9 +113,7 @@ def review_movie(request, movie_id):
         # 리뷰 사용자 목록에 추가
         movie.reviewed_by.add(request.user)
         
-        return Response({
-            'review': MovieReviewSerializer(review).data,
-        })
+        return Response(MovieReviewSerializer(review).data,)
         
     except Movie.DoesNotExist:
         return Response({'error': '영화를 찾을 수 없습니다.'}, status=404)
@@ -212,6 +212,7 @@ def review_movie_detail(request, movie_id, review_id):
     except MovieReview.DoesNotExist:
         return Response({'error': '리뷰를 찾을 수 없습니다.'}, status=status.HTTP_404_NOT_FOUND)
     
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def user_liked_movies(request):
@@ -239,7 +240,7 @@ def user_reviews(request):
         })
     except Exception as e:
         return Response({'error': '데이터를 불러올 수 없습니다.'}, status=500)
-    
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def user_liked_actors(request):
@@ -267,3 +268,4 @@ def user_liked_directors(request):
         })
     except Exception as e:
         return Response({'error': '데이터를 불러올 수 없습니다.'}, status=500)
+

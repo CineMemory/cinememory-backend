@@ -1,5 +1,7 @@
 from rest_framework import serializers
+
 from .models import Movie, Actor, Director, MovieReview, Series, Genre, Provider, MovieProvider, MovieActor
+
 
 class MovieBasicSerializer(serializers.ModelSerializer):    # 영화 기본 정보
     class Meta:
@@ -228,4 +230,4 @@ class MovieReviewSerializer(serializers.ModelSerializer):
             'title': obj.movie.title,
             'poster_path': obj.movie.poster_path
         }
-        
+    

@@ -47,7 +47,7 @@ class PostListSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Post
-        fields = ('id', 'title', 'content', 'tags', 'like_count', 'comment_count', 'created_at', 'updated_at')
+        fields = ('id', 'author', 'title', 'content', 'tags', 'like_count', 'comment_count', 'created_at', 'updated_at')
     
     def get_author(self, obj):
       return {
@@ -84,7 +84,7 @@ class PostSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Post
-        fields = ('id', 'title', 'content', 'tags', 'tag_ids', 'tag_names', 'like_count', 'is_liked', 'comments', 'comment_count', 'created_at', 'updated_at')
+        fields = ('id', 'author','title', 'content', 'tags', 'tag_ids', 'tag_names', 'like_count', 'is_liked', 'comments', 'comment_count', 'created_at', 'updated_at')
         read_only_fields = ('author', 'like_count', 'is_liked', 'comments', 'comment_count')
 
     def get_author(self, obj):

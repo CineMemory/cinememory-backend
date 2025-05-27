@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from dj_rest_auth.registration.serializers import RegisterSerializer
+from movies.models import Movie, Actor, Director, MovieReview, ActorReview, DirectorReview
 
 User = get_user_model()
 
@@ -133,6 +134,7 @@ class UserSerializer(serializers.ModelSerializer):
             'username': instance.username,
             'birth': instance.birth
         }
+
 class CustomRegisterSerializer(RegisterSerializer):
     """
     dj-rest-auth 회원가입을 위한 커스텀 시리얼라이저
@@ -150,4 +152,94 @@ class CustomRegisterSerializer(RegisterSerializer):
         user.birth = self.cleaned_data.get('birth')
         user.save()
         return user
+
+class MovieReviewSerializer(serializers.ModelSerializer):
+    movie_title = serializers.CharField(source='movie.title')
+    movie_poster = serializers.CharField(source='movie.poster_path')
+    
+    class Meta:
+        model = MovieReview
+        fields = ['id', 'movie_title', 'movie_poster', 'content', 'rating', 'created_at']
+
+class ActorReviewSerializer(serializers.ModelSerializer):
+    actor_name = serializers.CharField(source='actor.name')
+    actor_profile = serializers.CharField(source='actor.profile_path')
+    
+    class Meta:
+        model = ActorReview
+        fields = ['id', 'actor_name', 'actor_profile', 'content', 'rating', 'created_at']
+
+class DirectorReviewSerializer(serializers.ModelSerializer):
+    director_name = serializers.CharField(source='director.name')
+    director_profile = serializers.CharField(source='director.profile_path')
+    
+    class Meta:
+        model = DirectorReview
+        fields = ['id', 'director_name', 'director_profile', 'content', 'rating', 'created_at']
+
+class LikedMovieSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Movie
+        fields = ['id', 'title', 'poster_path', 'vote_average']
+
+class LikedActorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Actor
+        fields = ['id', 'name', 'profile_path']
+
+class LikedDirectorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Director
+        fields = ['id', 'name', 'profile_path']
+
+class MyPageSerializer(serializers.ModelSerializer):
+    """
+    마이페이지 정보를 위한 시리얼라이저
+    사용자의 리뷰, 좋아요 목록 등을 포함
+    """
+    movie_reviews = serializers.SerializerMethodField()
+    actor_reviews = serializers.SerializerMethodField()
+    director_reviews = serializers.SerializerMethodField()
+    liked_movies = serializers.SerializerMethodField()
+    liked_actors = serializers.SerializerMethodField()
+    liked_directors = serializers.SerializerMethodField()
+    profile_image_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = [
+            'id', 'username', 'birth', 'profile_image_url',
+            'movie_reviews', 'actor_reviews', 'director_reviews',
+            'liked_movies', 'liked_actors', 'liked_directors'
+        ]
+        read_only_fields = ['id']
+
+    def get_profile_image_url(self, obj):
+        if obj.profile_image:
+            return obj.profile_image.url
+        return '/media/profile_images/default.jpg'
+
+    def get_movie_reviews(self, obj):
+        reviews = MovieReview.objects.filter(user=obj).order_by('-created_at')
+        return MovieReviewSerializer(reviews, many=True).data
+
+    def get_actor_reviews(self, obj):
+        reviews = ActorReview.objects.filter(user=obj).order_by('-created_at')
+        return ActorReviewSerializer(reviews, many=True).data
+
+    def get_director_reviews(self, obj):
+        reviews = DirectorReview.objects.filter(user=obj).order_by('-created_at')
+        return DirectorReviewSerializer(reviews, many=True).data
+
+    def get_liked_movies(self, obj):
+        movies = obj.liked_movies.all()
+        return LikedMovieSerializer(movies, many=True).data
+
+    def get_liked_actors(self, obj):
+        actors = obj.liked_actors.all()
+        return LikedActorSerializer(actors, many=True).data
+
+    def get_liked_directors(self, obj):
+        directors = obj.liked_directors.all()
+        return LikedDirectorSerializer(directors, many=True).data
         

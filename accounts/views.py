@@ -4,7 +4,7 @@ from django.contrib.auth import authenticate, login as auth_login, logout as aut
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authtoken.models import Token
-from .serializer import UserSerializer
+from .serializer import MyPageSerializer, UserSerializer
 
 User = get_user_model()
 
@@ -199,3 +199,10 @@ def update_profile_image(request):
         'user': serializer.data,
         'message': '프로필 이미지가 업데이트되었습니다.'
     }, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def my_page(request):
+    user = request.user
+    serializer = MyPageSerializer(user)
+    return Response(serializer.data)    

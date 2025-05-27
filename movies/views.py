@@ -1,8 +1,8 @@
 from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
-from .models import ActorReview, DirectorReview, Movie, Actor, Director, MovieReview, MovieProvider, Provider
-from .serializer import DirectorBasicSerializer, MovieReviewSerializer, MovieSerializer, ActorSerializer, DirectorSerializer, MovieListSerializer, ActorBasicSerializer, ActorReviewSerializer, DirectorReviewSerializer, MovieProviderSerializer
+from .models import Movie, Actor, Director, MovieReview, MovieProvider, Provider
+from .serializer import DirectorBasicSerializer, MovieReviewSerializer, MovieSerializer, ActorSerializer, DirectorSerializer, MovieListSerializer, ActorBasicSerializer, MovieProviderSerializer
 from rest_framework.decorators import permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
@@ -120,46 +120,6 @@ def review_movie(request, movie_id):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def review_person(request, person_id):
-    try:
-        if Actor.objects.filter(id=person_id).exists():
-            person = Actor.objects.get(id=person_id)
-            content = request.data.get('content', '')
-            rating = request.data.get('rating', 0)
-            review, created = ActorReview.objects.get_or_create(
-                user=request.user,
-                actor=person,
-                defaults={'content': content, 'rating': rating}
-            )
-        elif Director.objects.filter(id=person_id).exists():
-            person = Director.objects.get(id=person_id)
-            content = request.data.get('content', '')
-            rating = request.data.get('rating', 0)
-            review, created = DirectorReview.objects.get_or_create(
-                user=request.user,
-                director=person,
-                defaults={'content': content, 'rating': rating}
-            )
-        else:
-            return Response({'error': '사람을 찾을 수 없습니다.'}, status=404)
-        
-        if not created:
-            review.content = content
-            review.rating = rating
-            review.save()
-        
-        # 리뷰 사용자 목록에 추가
-        person.reviewed_by.add(request.user)
-        
-        return Response({
-            'review': ActorReviewSerializer(review).data if Actor.objects.filter(id=person_id).exists() else DirectorReviewSerializer(review).data,
-        })
-        
-    except (Actor.DoesNotExist, Director.DoesNotExist):
-        return Response({'error': '사람을 찾을 수 없습니다.'}, status=404)
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
 def like_movie(request, movie_id):
     try:
         movie = Movie.objects.get(id=movie_id)
@@ -252,52 +212,6 @@ def review_movie_detail(request, movie_id, review_id):
     except MovieReview.DoesNotExist:
         return Response({'error': '리뷰를 찾을 수 없습니다.'}, status=status.HTTP_404_NOT_FOUND)
     
-@api_view(['GET', 'PUT', 'DELETE'])
-@permission_classes([IsAuthenticated])
-def review_person_detail(request, person_id, review_id):
-    try:
-        # Actor 리뷰인지 Director 리뷰인지 확인
-        if Actor.objects.filter(id=person_id).exists():
-            review = ActorReview.objects.get(id=review_id)
-            if review.user != request.user:
-                return Response({'error': '리뷰 수정 권한이 없습니다.'}, status=status.HTTP_403_FORBIDDEN)
-            
-            if request.method == 'GET':
-                serializer = ActorReviewSerializer(review)
-                return Response(serializer.data)
-            elif request.method == 'PUT':
-                serializer = ActorReviewSerializer(review, data=request.data, partial=True)
-                if serializer.is_valid():
-                    serializer.save()  # user는 이미 설정되어 있으므로 따로 전달할 필요 없음
-                    return Response(serializer.data)
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-            elif request.method == 'DELETE':
-                review.delete()
-                return Response({'message': '리뷰가 삭제되었습니다.'}, status=status.HTTP_204_NO_CONTENT)
-                
-        elif Director.objects.filter(id=person_id).exists():
-            review = DirectorReview.objects.get(id=review_id)
-            if review.user != request.user:
-                return Response({'error': '리뷰 수정 권한이 없습니다.'}, status=status.HTTP_403_FORBIDDEN)
-            
-            if request.method == 'GET':
-                serializer = DirectorReviewSerializer(review)
-                return Response(serializer.data)
-            elif request.method == 'PUT':
-                serializer = DirectorReviewSerializer(review, data=request.data, partial=True)
-                if serializer.is_valid():
-                    serializer.save()  # user는 이미 설정되어 있으므로 따로 전달할 필요 없음
-                    return Response(serializer.data)
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-            elif request.method == 'DELETE':
-                review.delete()
-                return Response({'message': '리뷰가 삭제되었습니다.'}, status=status.HTTP_204_NO_CONTENT)
-        else:
-            return Response({'error': '사람을 찾을 수 없습니다.'}, status=status.HTTP_404_NOT_FOUND)
-            
-    except (ActorReview.DoesNotExist, DirectorReview.DoesNotExist):
-        return Response({'error': '리뷰를 찾을 수 없습니다.'}, status=status.HTTP_404_NOT_FOUND)
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def user_liked_movies(request):
@@ -326,3 +240,30 @@ def user_reviews(request):
     except Exception as e:
         return Response({'error': '데이터를 불러올 수 없습니다.'}, status=500)
     
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def user_liked_actors(request):
+    """사용자가 좋아요한 배우 목록"""
+    try:
+        liked_actors = request.user.liked_actors.all()
+        serializer = ActorBasicSerializer(liked_actors, many=True)
+        return Response({
+            'liked_actors': serializer.data,
+            'count': liked_actors.count()
+        })
+    except Exception as e:
+        return Response({'error': '데이터를 불러올 수 없습니다.'}, status=500)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def user_liked_directors(request):
+    """사용자가 좋아요한 감독 목록"""
+    try:
+        liked_directors = request.user.liked_directors.all()
+        serializer = DirectorBasicSerializer(liked_directors, many=True)
+        return Response({
+            'liked_directors': serializer.data,
+            'count': liked_directors.count()
+        })
+    except Exception as e:
+        return Response({'error': '데이터를 불러올 수 없습니다.'}, status=500)

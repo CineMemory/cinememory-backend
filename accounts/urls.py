@@ -14,4 +14,11 @@ urlpatterns = [
     path('me/update/', views.update_user, name='update_user'),
     path('me/profile-image/', views.update_profile_image, name='update_profile_image'),
     path('me/delete/', views.delete_user, name='delete_user'),
+    
+    # 팔로우, 팔로잉
+    path('<int:user_id>/follow/', views.follow_user, name='follow_user'),
+    path('<int:user_id>/followers/', views.get_followers, name='get_followers'),
+    path('<int:user_id>/following/', views.get_following, name='get_following'),
+
+    path('username/<str:username>/', views.get_user_by_username, name='get_user_by_username'),
 ]

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ActorReview, DirectorReview, Movie, Actor, Director, MovieReview, Series, Genre, Provider, MovieProvider, MovieActor
+from .models import Movie, Actor, Director, MovieReview, Series, Genre, Provider, MovieProvider, MovieActor
 
 class MovieBasicSerializer(serializers.ModelSerializer):    # 영화 기본 정보
     class Meta:
@@ -35,13 +35,11 @@ class ActorSerializer(serializers.ModelSerializer): # 배우 상세 페이지 �
     movies = serializers.SerializerMethodField()
     like_count = serializers.SerializerMethodField()
     is_liked = serializers.SerializerMethodField()
-    review_count = serializers.SerializerMethodField()
-    reviews = serializers.SerializerMethodField()
     
     class Meta:
         model = Actor
         fields = ('id', 'name', 'birth_date', 'death_date', 'profile_path', 'biography', 
-                 'instagram_username', 'role', 'movies', 'liked_by', 'reviewed_by', 'like_count', 'is_liked', 'review_count', 'reviews')
+                 'instagram_username', 'role', 'movies', 'liked_by', 'like_count', 'is_liked')
     
     def get_movies(self, obj):  # 배우의 출연작 목록 (캐릭터 정보 포함)
         movie_actors = MovieActor.objects.filter(actor=obj).select_related('movie').order_by('cast_order')
@@ -56,35 +54,15 @@ class ActorSerializer(serializers.ModelSerializer): # 배우 상세 페이지 �
             return obj.liked_by.filter(id=request.user.id).exists()
         return False
     
-    def get_review_count(self, obj):  # 배우의 리뷰 수
-        return obj.reviewed_by.count()
-    
-    def get_reviews(self, obj):  # 배우의 리뷰 목록
-        from .models import ActorReview  # 순환 import 방지
-        try:
-            reviews = ActorReview.objects.filter(actor=obj).select_related('user').order_by('-created_at')[:5]
-            return [{
-                'id': review.id,
-                'user': review.user.username,
-                'content': review.content,
-                'rating': review.rating,
-                'created_at': review.created_at
-            } for review in reviews]
-        except Exception as e:
-            print(f"❌ get_reviews error: {e}")
-            return []
-    
 class DirectorSerializer(serializers.ModelSerializer): # 감독 상세 페이지 들어갔을 때 정보
     movies = serializers.SerializerMethodField()
     like_count = serializers.SerializerMethodField()
     is_liked = serializers.SerializerMethodField()
-    review_count = serializers.SerializerMethodField()
-    reviews = serializers.SerializerMethodField()
     
     class Meta:
         model = Director
         fields = ('id', 'name', 'birth_date', 'death_date', 'profile_path', 'biography', 
-                 'instagram_username', 'role', 'movies', 'liked_by', 'reviewed_by', 'like_count', 'is_liked', 'review_count', 'reviews')
+                 'instagram_username', 'role', 'movies', 'liked_by', 'like_count', 'is_liked')
     
     def get_movies(self, obj):  # 감독의 연출작 목록
         movies = obj.movies.all()   
@@ -99,25 +77,7 @@ class DirectorSerializer(serializers.ModelSerializer): # 감독 상세 페이지
             return obj.liked_by.filter(id=request.user.id).exists()
         return False
     
-    def get_review_count(self, obj):  # 감독의 리뷰 수
-        return obj.reviewed_by.count()
-    
-    def get_reviews(self, obj):  # 감독의 리뷰 목록
-        from .models import DirectorReview  # 순환 import 방지
-        try:
-            reviews = DirectorReview.objects.filter(director=obj).select_related('user').order_by('-created_at')[:5]
-            return [{
-                'id': review.id,
-                'user': review.user.username,
-                'content': review.content,
-                'rating': review.rating,
-                'created_at': review.created_at
-            } for review in reviews]
-        except Exception as e:
-            print(f"❌ get_reviews error: {e}")
-            return []
-    
-    
+        
 class SeriesSerializer(serializers.ModelSerializer): # 시리즈 기본 정보
     class Meta:
         model = Series
@@ -210,12 +170,16 @@ class MovieSerializer(serializers.ModelSerializer): # 영화 상세 페이지 �
             return 0
     
     def get_reviews(self, obj):
-        from .models import MovieReview  # 순환 import 방지
+        from .models import MovieReview
         try:
             reviews = MovieReview.objects.filter(movie=obj).select_related('user').order_by('-created_at')[:5]
             return [{
                 'id': review.id,
                 'user': review.user.username,
+                'user_profile': {  # 새로 추가
+                    'id': review.user.id,
+                    'username': review.user.username
+                },
                 'content': review.content,
                 'rating': review.rating,
                 'created_at': review.created_at
@@ -246,28 +210,22 @@ class MovieSerializer(serializers.ModelSerializer): # 영화 상세 페이지 �
 class MovieReviewSerializer(serializers.ModelSerializer):
     user = serializers.StringRelatedField(read_only=True)
     user_profile = serializers.SerializerMethodField()  # 사용자 프로필 정보 추가
+    movie_info = serializers.SerializerMethodField()
     
     class Meta:
         model = MovieReview
-        fields = ['id', 'user', 'user_profile', 'content', 'rating', 'created_at', 'updated_at']  # rating 추가
+        fields = ['id', 'user', 'user_profile', 'movie_info', 'content', 'rating', 'created_at', 'updated_at']  # rating 추가
         
     def get_user_profile(self, obj):
-        """사용자 프로필 정보 (아바타 등)"""
         return {
+            'id': obj.user.id,
             'username': obj.user.username,
-            # 'profile_image_url': obj.user.profile_image_url,  # 일단 주석 처리
+        }
+
+    def get_movie_info(self, obj):
+        return {
+            'id': obj.movie.id,
+            'title': obj.movie.title,
+            'poster_path': obj.movie.poster_path
         }
         
-class ActorReviewSerializer(serializers.ModelSerializer):
-    user = serializers.StringRelatedField(read_only=True)
-    
-    class Meta:
-        model = ActorReview
-        fields = '__all__'
-        
-class DirectorReviewSerializer(serializers.ModelSerializer):
-    user = serializers.StringRelatedField(read_only=True)
-    
-    class Meta:
-        model = DirectorReview
-        fields = '__all__'

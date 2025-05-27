@@ -33,7 +33,8 @@ class Director(models.Model):
     profile_path = models.URLField()                 # 프로필 이미지 URL
     instagram_username = models.CharField(max_length=100, null=True)  # 인스타그램 아이디
     liked_by = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='liked_directors', blank=True)  # 좋아요한 사용자들
-    reviewed_by = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='reviewed_directors', blank=True)  # 리뷰 작성한 사용자들
+    reviewed_by = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='reviewed_directors', blank=True)  # 임시 복구
+
     
     def __str__(self):
         return self.name
@@ -47,8 +48,10 @@ class Actor(models.Model):
     biography = models.TextField(null=True, blank=True)    # 약력
     profile_path = models.URLField()                 # 프로필 이미지 URL
     instagram_username = models.CharField(max_length=100, null=True, blank=True)  # 인스타그램 아이디
-    liked_by = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='liked_actors', blank=True)  # 좋아요한 사용자들
-    reviewed_by = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='reviewed_actors', blank=True)  # 리뷰 작성한 사용자들
+    liked_by = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='liked_actors', blank=True)
+    reviewed_by = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='reviewed_actors', blank=True)  # 임시 복구
+
+
 
     def __str__(self):
         return self.name
@@ -130,34 +133,6 @@ class MovieProvider(models.Model):
     
     def __str__(self):
         return f"{self.movie.title} - {self.provider.name} ({self.get_provider_type_display()})"
-    
-class ActorReview(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)  # 리뷰 작성자
-    actor = models.ForeignKey(Actor, on_delete=models.CASCADE)  # 리뷰 대상 배우
-    content = models.TextField()                    # 리뷰 내용
-    rating = models.FloatField(default=0, validators=[MinValueValidator(0), MaxValueValidator(5)])  # 평점 (0-5)
-    created_at = models.DateTimeField(auto_now_add=True)  # 작성일
-    updated_at = models.DateTimeField(auto_now=True)  # 수정일
-    
-    class Meta:
-        unique_together = ['user', 'actor']         # 한 사용자는 한 배우에 대해 하나의 리뷰만 작성 가능
-    
-    def __str__(self):
-        return f"{self.user.username} - {self.actor.name} ({self.rating}⭐)"
-    
-class DirectorReview(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)  # 리뷰 작성자
-    director = models.ForeignKey(Director, on_delete=models.CASCADE)  # 리뷰 대상 감독
-    content = models.TextField()                    # 리뷰 내용
-    rating = models.FloatField(default=0, validators=[MinValueValidator(0), MaxValueValidator(5)])  # 평점 (0-5)
-    created_at = models.DateTimeField(auto_now_add=True)  # 작성일
-    updated_at = models.DateTimeField(auto_now=True)  # 수정일
-    
-    class Meta:
-        unique_together = ['user', 'director']      # 한 사용자는 한 감독에 대해 하나의 리뷰만 작성 가능
-    
-    def __str__(self):
-        return f"{self.user.username} - {self.director.name} ({self.rating}⭐)"
     
 class MovieReview(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)  # 리뷰 작성자

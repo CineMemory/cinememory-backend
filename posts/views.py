@@ -553,4 +553,60 @@ def community_stats(request):
         status=status.HTTP_500_INTERNAL_SERVER_ERROR
       )
         
-   
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def user_posts(request):
+    """사용자가 작성한 게시글 목록"""
+    try:
+        user_posts = Post.objects.filter(user=request.user).select_related('user').prefetch_related('tags', 'like_users').order_by('-created_at')
+        serializer = PostListSerializer(user_posts, many=True)
+        return Response({
+            'posts': serializer.data,
+            'count': user_posts.count()
+        })
+    except Exception as e:
+        return Response({'error': '데이터를 불러올 수 없습니다.'}, status=500)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def user_comments(request):
+    """사용자가 작성한 댓글 목록"""
+    try:
+        user_comments = Comment.objects.filter(user=request.user).select_related('user', 'post').order_by('-created_at')
+        
+        comments_data = []
+        for comment in user_comments:
+            comments_data.append({
+                'id': comment.id,
+                'content': comment.content,
+                'created_at': comment.created_at,
+                'updated_at': comment.updated_at,
+                'like_count': comment.like_users.count(),
+                'post': {
+                    'id': comment.post.id,
+                    'title': comment.post.title,
+                    'created_at': comment.post.created_at
+                },
+                'parent_id': comment.parent.id if comment.parent else None
+            })
+            
+        return Response({
+            'comments': comments_data,
+            'count': len(comments_data)
+        })
+    except Exception as e:
+        return Response({'error': '데이터를 불러올 수 없습니다.'}, status=500)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def user_liked_posts(request):
+    """사용자가 좋아요한 게시글 목록"""
+    try:
+        liked_posts = request.user.liked_posts.all().select_related('user').prefetch_related('tags', 'like_users').order_by('-created_at')
+        serializer = PostListSerializer(liked_posts, many=True)
+        return Response({
+            'liked_posts': serializer.data,
+            'count': liked_posts.count()
+        })
+    except Exception as e:
+        return Response({'error': '데이터를 불러올 수 없습니다.'}, status=500)  

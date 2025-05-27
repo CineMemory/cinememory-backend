@@ -448,7 +448,7 @@ def save_excluded_genres(request):
         # 새로운 제외 장르 저장
         for genre_id in genre_ids:
             try:
-                genre = Genre.objects.get(genre_id=genre_id)
+                genre = Genre.objects.get(id=genre_id)
                 UserGenreExclusion.objects.create(
                     user=request.user, genre=genre
                 )
@@ -483,83 +483,203 @@ def get_random_movie_during_analysis(request):  # GPT 분석 중 보여줄 랜�
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def generate_gpt_recommendations(
-    request,
-):  # 4단계: GPT를 통한 개인화 추천 생성
-    user = request.user
+def generate_gpt_recommendations(request):
+   """4단계: GPT를 통한 개인화 추천 생성"""
+   user = request.user
 
-    # 사용자 선호 데이터 수집
-    favorite_movies = UserMoviePreference.objects.filter(
-        user=user, preference_type='favorite'
-    ).select_related('movie')
+   # 사용자 선호 데이터 수집
+   favorite_movies = UserMoviePreference.objects.filter(
+       user=user, preference_type='favorite'
+   ).select_related('movie')
 
-    interesting_movies = UserMoviePreference.objects.filter(
-        user=user, preference_type='interesting'
-    ).select_related('movie')
+   interesting_movies = UserMoviePreference.objects.filter(
+       user=user, preference_type='interesting'
+   ).select_related('movie')
 
-    excluded_genres = UserGenreExclusion.objects.filter(
-        user=user
-    ).select_related('genre')
+   excluded_genres = UserGenreExclusion.objects.filter(
+       user=user
+   ).select_related('genre')
 
-    try:
-        # GPT 서비스 초기화 및 추천 생성
-        gpt_service = GPTRecommendationService()
-        gpt_response = gpt_service.generate_recommendations(
-            user, favorite_movies, interesting_movies, excluded_genres
-        )
+   try:
+       # GPT 서비스 초기화 및 추천 생성
+       gpt_service = GPTRecommendationService()
+       gpt_response = gpt_service.generate_recommendations(
+           user, favorite_movies, interesting_movies, excluded_genres
+       )
 
-        # GPT 추천 결과 저장
-        with transaction.atomic():
-            recommendation, created = GPTRecommendation.objects.get_or_create(
-                user=user,
-                defaults={'taste_summary': gpt_response['taste_summary']},
-            )
+       # GPT 추천 결과 저장 (기존 것이 있으면 업데이트)
+       with transaction.atomic():
+           # get_or_create 대신 명시적으로 처리
+           try:
+               recommendation = GPTRecommendation.objects.get(user=user)
+               # 기존 추천이 있으면 업데이트
+               recommendation.taste_summary = gpt_response['taste_summary']
+               recommendation.save()
+               
+               # 기존 추천 영화들 삭제
+               GPTRecommendedMovie.objects.filter(
+                   recommendation=recommendation
+               ).delete()
+               
+           except GPTRecommendation.DoesNotExist:
+               # 새로 생성
+               recommendation = GPTRecommendation.objects.create(
+                   user=user,
+                   taste_summary=gpt_response['taste_summary']
+               )
 
-            if not created:
-                recommendation.taste_summary = gpt_response['taste_summary']
-                recommendation.save()
-                # 기존 추천 영화들 삭제
-                GPTRecommendedMovie.objects.filter(
-                    recommendation=recommendation
-                ).delete()
+           # 새로운 추천 영화들 저장 - 중복 체크 추가
+           saved_movie_ids = set()  # 중복 방지를 위한 set
+           for i, movie_rec in enumerate(gpt_response['movies'], 1):
+               try:
+                   movie = Movie.objects.get(id=movie_rec['movie_id'])
+                   
+                   # 이미 저장된 영화인지 확인
+                   if movie.id in saved_movie_ids:
+                       print(f"⚠️ 중복된 영화 스킵: {movie.title} (ID: {movie.id})")
+                       continue
+                       
+                   # 혹시나 DB에 이미 존재하는지도 체크
+                   if GPTRecommendedMovie.objects.filter(
+                       recommendation=recommendation, 
+                       movie=movie
+                   ).exists():
+                       print(f"⚠️ DB에 이미 존재하는 영화 스킵: {movie.title}")
+                       continue
+                   
+                   GPTRecommendedMovie.objects.create(
+                       recommendation=recommendation,
+                       movie=movie,
+                       reason=movie_rec['reason'],
+                       recommendation_order=i,
+                       target_age=movie_rec['target_age'],
+                   )
+                   saved_movie_ids.add(movie.id)
+                   
+               except Movie.DoesNotExist:
+                   print(f"⚠️ 존재하지 않는 영화 ID: {movie_rec['movie_id']}")
+                   continue
 
-            # 새로운 추천 영화들 저장
-            for i, movie_rec in enumerate(gpt_response['movies'], 1):
-                try:
-                    movie = Movie.objects.get(id=movie_rec['movie_id'])
-                    GPTRecommendedMovie.objects.create(
-                        recommendation=recommendation,
-                        movie=movie,
-                        reason=movie_rec['reason'],
-                        recommendation_order=i,
-                        target_age=movie_rec['target_age'],
-                    )
-                except Movie.DoesNotExist:
-                    continue
+           # 온보딩 완료 처리
+           step = OnboardingStep.objects.get(user=user)
+           step.current_step = 'completed'
+           step.save()
 
-            # 온보딩 완료 처리
-            step = OnboardingStep.objects.get(user=user)
-            step.current_step = 'completed'
-            step.save()
+           user.onboarding_completed = True
+           user.taste_analysis = gpt_response['taste_summary']
+           user.save()
 
-            user.onboarding_completed = True
-            user.taste_analysis = gpt_response['taste_summary']
-            user.save()
+       return Response(
+           {
+               'message': '개인화 추천이 완료되었습니다.',
+               'taste_summary': gpt_response['taste_summary'],
+               'recommended_movies': gpt_response['movies'],
+           }
+       )
 
-        return Response(
-            {
-                'message': '개인화 추천이 완료되었습니다.',
-                'taste_summary': gpt_response['taste_summary'],
-                'recommended_movies': gpt_response['movies'],
-            }
-        )
+   except Exception as e:
+       print(f"❌ GPT 추천 생성 오류: {str(e)}")  # 디버깅용
+       return Response(
+           {'error': f'추천 생성 중 오류가 발생했습니다: {str(e)}'},
+           status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+       )
 
-    except Exception as e:
-        return Response(
-            {'error': f'추천 생성 중 오류가 발생했습니다: {str(e)}'},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        )
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def regenerate_recommendations(request):
+   """추천 결과 재생성"""
+   user = request.user
+
+   # 기존 추천이 있는지 확인
+   if not GPTRecommendation.objects.filter(user=user).exists():
+       return Response(
+           {
+               'error': '이전 추천 결과가 없습니다. 먼저 온보딩을 완료해주세요.'
+           },
+           status=status.HTTP_400_BAD_REQUEST,
+       )
+
+   # 사용자 선호 데이터 수집
+   favorite_movies = UserMoviePreference.objects.filter(
+       user=user, preference_type='favorite'
+   ).select_related('movie')
+
+   interesting_movies = UserMoviePreference.objects.filter(
+       user=user, preference_type='interesting'
+   ).select_related('movie')
+
+   excluded_genres = UserGenreExclusion.objects.filter(
+       user=user
+   ).select_related('genre')
+
+   try:
+       # GPT 서비스 초기화 및 추천 재생성
+       gpt_service = GPTRecommendationService()
+       gpt_response = gpt_service.generate_recommendations(
+           user, favorite_movies, interesting_movies, excluded_genres
+       )
+
+       # 기존 추천 결과 업데이트
+       with transaction.atomic():
+           recommendation = GPTRecommendation.objects.get(user=user)
+           recommendation.taste_summary = gpt_response['taste_summary']
+           recommendation.save()
+
+           # 기존 추천 영화들 삭제
+           GPTRecommendedMovie.objects.filter(
+               recommendation=recommendation
+           ).delete()
+
+           # 새로운 추천 영화들 저장 - 중복 체크 추가
+           saved_movie_ids = set()  # 중복 방지를 위한 set
+           for i, movie_rec in enumerate(gpt_response['movies'], 1):
+               try:
+                   movie = Movie.objects.get(id=movie_rec['movie_id'])
+                   
+                   # 이미 저장된 영화인지 확인
+                   if movie.id in saved_movie_ids:
+                       print(f"⚠️ 중복된 영화 스킵: {movie.title} (ID: {movie.id})")
+                       continue
+                       
+                   # 혹시나 DB에 이미 존재하는지도 체크
+                   if GPTRecommendedMovie.objects.filter(
+                       recommendation=recommendation, 
+                       movie=movie
+                   ).exists():
+                       print(f"⚠️ DB에 이미 존재하는 영화 스킵: {movie.title}")
+                       continue
+                   
+                   GPTRecommendedMovie.objects.create(
+                       recommendation=recommendation,
+                       movie=movie,
+                       reason=movie_rec['reason'],
+                       recommendation_order=i,
+                       target_age=movie_rec['target_age'],
+                   )
+                   saved_movie_ids.add(movie.id)
+                   
+               except Movie.DoesNotExist:
+                   print(f"⚠️ 존재하지 않는 영화 ID: {movie_rec['movie_id']}")
+                   continue
+
+           # 사용자 취향 분석 업데이트
+           user.taste_analysis = gpt_response['taste_summary']
+           user.save()
+
+       return Response(
+           {
+               'message': '추천이 재생성되었습니다.',
+               'taste_summary': gpt_response['taste_summary'],
+               'recommended_movies': gpt_response['movies'],
+           }
+       )
+
+   except Exception as e:
+       return Response(
+           {'error': f'추천 재생성 중 오류가 발생했습니다: {str(e)}'},
+           status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+       )
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -604,83 +724,4 @@ def get_user_recommendations(request):
         return Response(
             {'error': '아직 추천 결과가 없습니다. 온보딩을 완료해주세요.'},
             status=status.HTTP_404_NOT_FOUND,
-        )
-
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def regenerate_recommendations(request):
-    """추천 결과 재생성"""
-    user = request.user
-
-    # 기존 추천이 있는지 확인
-    if not GPTRecommendation.objects.filter(user=user).exists():
-        return Response(
-            {
-                'error': '이전 추천 결과가 없습니다. 먼저 온보딩을 완료해주세요.'
-            },
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    # 사용자 선호 데이터 수집
-    favorite_movies = UserMoviePreference.objects.filter(
-        user=user, preference_type='favorite'
-    ).select_related('movie')
-
-    interesting_movies = UserMoviePreference.objects.filter(
-        user=user, preference_type='interesting'
-    ).select_related('movie')
-
-    excluded_genres = UserGenreExclusion.objects.filter(
-        user=user
-    ).select_related('genre')
-
-    try:
-        # GPT 서비스 초기화 및 추천 재생성
-        gpt_service = GPTRecommendationService()
-        gpt_response = gpt_service.generate_recommendations(
-            user, favorite_movies, interesting_movies, excluded_genres
-        )
-
-        # 기존 추천 결과 업데이트
-        with transaction.atomic():
-            recommendation = GPTRecommendation.objects.get(user=user)
-            recommendation.taste_summary = gpt_response['taste_summary']
-            recommendation.save()
-
-            # 기존 추천 영화들 삭제
-            GPTRecommendedMovie.objects.filter(
-                recommendation=recommendation
-            ).delete()
-
-            # 새로운 추천 영화들 저장
-            for i, movie_rec in enumerate(gpt_response['movies'], 1):
-                try:
-                    movie = Movie.objects.get(id=movie_rec['movie_id'])
-                    GPTRecommendedMovie.objects.create(
-                        recommendation=recommendation,
-                        movie=movie,
-                        reason=movie_rec['reason'],
-                        recommendation_order=i,
-                        target_age=movie_rec['target_age'],
-                    )
-                except Movie.DoesNotExist:
-                    continue
-
-            # 사용자 취향 분석 업데이트
-            user.taste_analysis = gpt_response['taste_summary']
-            user.save()
-
-        return Response(
-            {
-                'message': '추천이 재생성되었습니다.',
-                'taste_summary': gpt_response['taste_summary'],
-                'recommended_movies': gpt_response['movies'],
-            }
-        )
-
-    except Exception as e:
-        return Response(
-            {'error': f'추천 재생성 중 오류가 발생했습니다: {str(e)}'},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )

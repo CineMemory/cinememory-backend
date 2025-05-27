@@ -1,8 +1,8 @@
 from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
-from .models import ActorReview, DirectorReview, Movie, Actor, Director, MovieReview
-from .serializer import DirectorBasicSerializer, MovieReviewSerializer, MovieSerializer, ActorSerializer, DirectorSerializer, MovieListSerializer, ActorBasicSerializer, ActorReviewSerializer, DirectorReviewSerializer
+from .models import ActorReview, DirectorReview, Movie, Actor, Director, MovieReview, MovieProvider, Provider
+from .serializer import DirectorBasicSerializer, MovieReviewSerializer, MovieSerializer, ActorSerializer, DirectorSerializer, MovieListSerializer, ActorBasicSerializer, ActorReviewSerializer, DirectorReviewSerializer, MovieProviderSerializer
 from rest_framework.decorators import permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
@@ -10,16 +10,16 @@ from rest_framework import status
 
 # Create your views here.
 @api_view(['GET'])
-def movie_detail(request, movie_id):
-    print(f'요청된 movie_id: {movie_id}')
+def movie_detail(request, id):
+    print(f'요청된 movie_id: {id}')
     try:
-        movie = Movie.objects.get(movie_id=movie_id)
+        movie = Movie.objects.get(id=id)
         print(f'영화 찾음: {movie.title}')
 
         # 관계 데이터를 효율적으로 가져오기 위한 최적화
         movie = Movie.objects.select_related('series').prefetch_related(
-            'genres', 'directors', 'actors', 'like_users'
-        ).get(movie_id=movie_id)
+            'genres', 'directors', 'actors', 'liked_by'
+        ).get(id=id)
         
         serializer = MovieSerializer(movie)
         return Response(serializer.data)
@@ -32,13 +32,13 @@ def movie_detail(request, movie_id):
 def person_detail(request, person_id):
     try:
         # 배우인지 확인
-        if Actor.objects.filter(actor_id=person_id).exists():
-            person = Actor.objects.prefetch_related('movies').get(actor_id=person_id)
+        if Actor.objects.filter(id=person_id).exists():
+            person = Actor.objects.prefetch_related('movies').get(id=person_id)
             serializer = ActorSerializer(person)
             return Response(serializer.data)
         # 감독인지 확인
-        elif Director.objects.filter(director_id=person_id).exists():
-            person = Director.objects.prefetch_related('movies').get(director_id=person_id)
+        elif Director.objects.filter(id=person_id).exists():
+            person = Director.objects.prefetch_related('movies').get(id=person_id)
             serializer = DirectorSerializer(person)
             return Response(serializer.data)
     except Exception as e:
@@ -75,7 +75,7 @@ def search_some(request):
         
         # 결과가 하나도 없을 때만 404
         if not any([movies, actors, directors]):
-            return Response({'error': '검색 결과를 찾을 수 없습니다.'}, status=404)
+            return Response({'error': '검색 결과를 찾을 수 없습니다.'}, status=204)
         
         return Response(results)
         
@@ -86,9 +86,9 @@ def search_some(request):
 @permission_classes([IsAuthenticated])
 def review_movie(request, movie_id):
     try:
-        movie = Movie.objects.get(movie_id=movie_id)
+        movie = Movie.objects.get(id=movie_id)
         content = request.data.get('content', '')
-        rating = request.data.get('raging', 0)
+        rating = request.data.get('rating', 0)
         
         if not content:
             return Response({'error': '리뷰 내용을 입력해주세요.'}, status=400)
@@ -109,7 +109,7 @@ def review_movie(request, movie_id):
             review.save()
         
         # 리뷰 사용자 목록에 추가
-        movie.review_users.add(request.user)
+        movie.reviewed_by.add(request.user)
         
         return Response({
             'review': MovieReviewSerializer(review).data,
@@ -122,34 +122,37 @@ def review_movie(request, movie_id):
 @permission_classes([IsAuthenticated])
 def review_person(request, person_id):
     try:
-        if Actor.objects.filter(actor_id=person_id).exists():
-            person = Actor.objects.get(actor_id=person_id)
+        if Actor.objects.filter(id=person_id).exists():
+            person = Actor.objects.get(id=person_id)
             content = request.data.get('content', '')
+            rating = request.data.get('rating', 0)
             review, created = ActorReview.objects.get_or_create(
                 user=request.user,
                 actor=person,
-                defaults={'content': content}
+                defaults={'content': content, 'rating': rating}
             )
-        elif Director.objects.filter(director_id=person_id).exists():
-            person = Director.objects.get(director_id=person_id)
+        elif Director.objects.filter(id=person_id).exists():
+            person = Director.objects.get(id=person_id)
             content = request.data.get('content', '')
+            rating = request.data.get('rating', 0)
             review, created = DirectorReview.objects.get_or_create(
                 user=request.user,
                 director=person,
-                defaults={'content': content}
+                defaults={'content': content, 'rating': rating}
             )
         else:
             return Response({'error': '사람을 찾을 수 없습니다.'}, status=404)
         
         if not created:
             review.content = content
+            review.rating = rating
             review.save()
         
         # 리뷰 사용자 목록에 추가
-        person.review_users.add(request.user)
+        person.reviewed_by.add(request.user)
         
         return Response({
-            'review': ActorReviewSerializer(review).data if Actor.objects.filter(actor_id=person_id).exists() else DirectorReviewSerializer(review).data,
+            'review': ActorReviewSerializer(review).data if Actor.objects.filter(id=person_id).exists() else DirectorReviewSerializer(review).data,
         })
         
     except (Actor.DoesNotExist, Director.DoesNotExist):
@@ -159,25 +162,25 @@ def review_person(request, person_id):
 @permission_classes([IsAuthenticated])
 def like_movie(request, movie_id):
     try:
-        movie = Movie.objects.get(movie_id=movie_id)
-        is_liked_before = movie.like_users.filter(id=request.user.id).exists()
+        movie = Movie.objects.get(id=movie_id)
+        is_liked_before = movie.liked_by.filter(id=request.user.id).exists()
         
         if is_liked_before:
-            movie.like_users.remove(request.user)
+            movie.liked_by.remove(request.user)
             is_liked_after = False
             message = '좋아요가 취소되었습니다.'
         else:
-            movie.like_users.add(request.user)
+            movie.liked_by.add(request.user)
             is_liked_after = True
             message = '좋아요가 추가되었습니다.'
             
-        like_count = movie.like_users.count()
+        like_count = movie.liked_by.count()
         
         return Response({
             'message': message,
             'is_liked': is_liked_after,
             'like_count': like_count,
-            'movie_id': movie.movie_id
+            'movie_id': movie.id
         }, status=status.HTTP_200_OK)
     
     except Movie.DoesNotExist:
@@ -191,33 +194,33 @@ def like_movie(request, movie_id):
 @permission_classes([IsAuthenticated])
 def like_person(request, person_id):
     try:
-        if Actor.objects.filter(actor_id=person_id).exists():
-            person = Actor.objects.get(actor_id=person_id)
-            is_liked_before = person.like_users.filter(id=request.user.id).exists()
-        elif Director.objects.filter(director_id=person_id).exists():
-            person = Director.objects.get(director_id=person_id)
-            is_liked_before = person.like_users.filter(id=request.user.id).exists()
+        if Actor.objects.filter(id=person_id).exists():
+            person = Actor.objects.get(id=person_id)
+            is_liked_before = person.liked_by.filter(id=request.user.id).exists()
+        elif Director.objects.filter(id=person_id).exists():
+            person = Director.objects.get(id=person_id)
+            is_liked_before = person.liked_by.filter(id=request.user.id).exists()
         else:
             return Response(
                 {'error': '사람을 찾을 수 없습니다.'}, 
                 status=status.HTTP_404_NOT_FOUND
             )
         if is_liked_before:
-            person.like_users.remove(request.user)
+            person.liked_by.remove(request.user)
             is_liked_after = False
             message = '좋아요가 취소되었습니다.'
         else:
-            person.like_users.add(request.user)
+            person.liked_by.add(request.user)
             is_liked_after = True
             message = '좋아요가 추가되었습니다.'
             
-        like_count = person.like_users.count()
+        like_count = person.liked_by.count()
         
         return Response({
             'message': message,
             'is_liked': is_liked_after,
             'like_count': like_count,
-            'person_id': person.actor_id if Actor.objects.filter(actor_id=person_id).exists() else person.director_id
+            'person_id': person.id
         }, status=status.HTTP_200_OK)
     
     except (Actor.DoesNotExist, Director.DoesNotExist):
@@ -254,7 +257,7 @@ def review_movie_detail(request, movie_id, review_id):
 def review_person_detail(request, person_id, review_id):
     try:
         # Actor 리뷰인지 Director 리뷰인지 확인
-        if Actor.objects.filter(actor_id=person_id).exists():
+        if Actor.objects.filter(id=person_id).exists():
             review = ActorReview.objects.get(id=review_id)
             if review.user != request.user:
                 return Response({'error': '리뷰 수정 권한이 없습니다.'}, status=status.HTTP_403_FORBIDDEN)
@@ -272,7 +275,7 @@ def review_person_detail(request, person_id, review_id):
                 review.delete()
                 return Response({'message': '리뷰가 삭제되었습니다.'}, status=status.HTTP_204_NO_CONTENT)
                 
-        elif Director.objects.filter(director_id=person_id).exists():
+        elif Director.objects.filter(id=person_id).exists():
             review = DirectorReview.objects.get(id=review_id)
             if review.user != request.user:
                 return Response({'error': '리뷰 수정 권한이 없습니다.'}, status=status.HTTP_403_FORBIDDEN)

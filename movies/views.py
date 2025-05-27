@@ -1,8 +1,9 @@
+from django.conf import settings
 from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
-from .models import ActorReview, DirectorReview, Movie, Actor, Director, MovieReview
-from .serializer import DirectorBasicSerializer, MovieReviewSerializer, MovieSerializer, ActorSerializer, DirectorSerializer, MovieListSerializer, ActorBasicSerializer, ActorReviewSerializer, DirectorReviewSerializer
+from .models import ActorReview, DirectorReview, Movie, Actor, Director, MovieReview, PersonalizedTimeline
+from .serializer import DirectorBasicSerializer, MovieReviewSerializer, MovieSerializer, ActorSerializer, DirectorSerializer, MovieListSerializer, ActorBasicSerializer, ActorReviewSerializer, DirectorReviewSerializer, PersonalizedTimelineSerializer
 from rest_framework.decorators import permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
@@ -111,9 +112,7 @@ def review_movie(request, movie_id):
         # 리뷰 사용자 목록에 추가
         movie.review_users.add(request.user)
         
-        return Response({
-            'review': MovieReviewSerializer(review).data,
-        })
+        return Response(MovieReviewSerializer(review).data,)
         
     except Movie.DoesNotExist:
         return Response({'error': '영화를 찾을 수 없습니다.'}, status=404)
@@ -148,9 +147,7 @@ def review_person(request, person_id):
         # 리뷰 사용자 목록에 추가
         person.review_users.add(request.user)
         
-        return Response({
-            'review': ActorReviewSerializer(review).data if Actor.objects.filter(actor_id=person_id).exists() else DirectorReviewSerializer(review).data,
-        })
+        return Response(ActorReviewSerializer(review).data if Actor.objects.filter(actor_id=person_id).exists() else DirectorReviewSerializer(review).data)
         
     except (Actor.DoesNotExist, Director.DoesNotExist):
         return Response({'error': '사람을 찾을 수 없습니다.'}, status=404)
@@ -295,6 +292,7 @@ def review_person_detail(request, person_id, review_id):
     except (ActorReview.DoesNotExist, DirectorReview.DoesNotExist):
         return Response({'error': '리뷰를 찾을 수 없습니다.'}, status=status.HTTP_404_NOT_FOUND)
 
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def user_liked_movies(request):
@@ -322,4 +320,4 @@ def user_reviews(request):
         })
     except Exception as e:
         return Response({'error': '데이터를 불러올 수 없습니다.'}, status=500)
-    
+

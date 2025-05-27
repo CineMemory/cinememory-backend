@@ -5,7 +5,10 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authtoken.models import Token
 from .serializer import UserSerializer
-from .models import Follow
+from .models import Follow, OnboardingStep, OnboardingMovie, UserMoviePreference, UserGenreExclusion, GPTRecommendation, GPTRecommendedMovie
+from movies.models import Movie, Genre
+from .gpt_service import GPTRecommendationService
+from django.db import transaction
 
 User = get_user_model()
 
@@ -266,3 +269,418 @@ def get_user_by_username(request, username):
     except User.DoesNotExist:
         return Response({'error': '사용자를 찾을 수 없습니다.'}, 
                       status=status.HTTP_404_NOT_FOUND)
+        
+# 온보딩
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def onboarding_status(request):
+    """현재 온보딩 진행 상황 조회"""
+    try:
+        step = OnboardingStep.objects.get(user=request.user)
+        return Response(
+            {
+                'current_step': step.current_step,
+                'step_data': step.step_data,
+                'completed': request.user.onboarding_completed,
+            }
+        )
+    except OnboardingStep.DoesNotExist:
+        # 첫 온보딩 시작
+        step = OnboardingStep.objects.create(user=request.user)
+        return Response(
+            {
+                'current_step': step.current_step,
+                'step_data': step.step_data,
+                'completed': False,
+            }
+        )
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_famous_movies(request):
+    """1단계: 유명한 영화들 제공"""
+    famous_movies = OnboardingMovie.objects.filter(
+        movie_type='famous', is_active=True
+    ).select_related('movie')[:20]
+
+    movies_data = []
+    for onboarding_movie in famous_movies:
+        movie = onboarding_movie.movie
+        movies_data.append(
+            {
+                'movie_id': movie.id,
+                'title': movie.title,
+                'poster_path': movie.poster_path,
+                'release_date': movie.release_date,
+                'overview': (
+                    movie.overview[:100] + '...' if movie.overview else ''
+                ),
+            }
+        )
+
+    return Response({'movies': movies_data})
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def save_favorite_movies(request):
+    """1단계: 재밌게 본 영화들 저장"""
+    movie_ids = request.data.get('movie_ids', [])
+
+    if len(movie_ids) < 1 or len(movie_ids) > 10:
+        return Response(
+            {'error': '1개 이상 10개 이하로 선택해주세요.'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    with transaction.atomic():
+        # 기존 선호도 삭제
+        UserMoviePreference.objects.filter(
+            user=request.user, preference_type='favorite'
+        ).delete()
+
+        # 새로운 선호도 저장
+        for movie_id in movie_ids:
+            try:
+                movie = Movie.objects.get(id=movie_id)
+                UserMoviePreference.objects.create(
+                    user=request.user, movie=movie, preference_type='favorite'
+                )
+            except Movie.DoesNotExist:
+                continue
+
+        # 진행 상황 업데이트
+        step, created = OnboardingStep.objects.get_or_create(user=request.user)
+        step.current_step = 'interesting_movies'
+        step.step_data['favorite_movies'] = movie_ids
+        step.save()
+
+    return Response({'message': '재밌게 본 영화가 저장되었습니다.'})
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_hidden_movies(request):
+    """2단계: 숨겨진 영화들 제공"""
+    hidden_movies = OnboardingMovie.objects.filter(
+        movie_type='hidden', is_active=True
+    ).select_related('movie')[:20]
+
+    movies_data = []
+    for onboarding_movie in hidden_movies:
+        movie = onboarding_movie.movie
+        movies_data.append(
+            {
+                'movie_id': movie.id,
+                'title': movie.title,
+                'poster_path': movie.poster_path,
+                'release_date': movie.release_date,
+                'overview': (
+                    movie.overview[:100] + '...' if movie.overview else ''
+                ),
+            }
+        )
+
+    return Response({'movies': movies_data})
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def save_interesting_movies(request):
+    """2단계: 관심있는 영화들 저장"""
+    movie_ids = request.data.get('movie_ids', [])
+
+    if len(movie_ids) < 1 or len(movie_ids) > 10:
+        return Response(
+            {'error': '1개 이상 10개 이하로 선택해주세요.'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    with transaction.atomic():
+        # 기존 선호도 삭제
+        UserMoviePreference.objects.filter(
+            user=request.user, preference_type='interesting'
+        ).delete()
+
+        # 새로운 선호도 저장
+        for movie_id in movie_ids:
+            try:
+                movie = Movie.objects.get(id=movie_id)
+                UserMoviePreference.objects.create(
+                    user=request.user,
+                    movie=movie,
+                    preference_type='interesting',
+                )
+            except Movie.DoesNotExist:
+                continue
+
+        # 진행 상황 업데이트
+        step, created = OnboardingStep.objects.get_or_create(user=request.user)
+        step.current_step = 'exclude_genres'
+        step.step_data['interesting_movies'] = movie_ids
+        step.save()
+
+    return Response({'message': '관심있는 영화가 저장되었습니다.'})
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_genres(request):
+    """3단계: 전체 장르 목록 제공"""
+    genres = Genre.objects.all()
+    genres_data = [
+        {'genre_id': genre.id, 'genre_name': genre.name} for genre in genres
+    ]
+    return Response({'genres': genres_data})
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def save_excluded_genres(request):
+    """3단계: 제외할 장르 저장"""
+    genre_ids = request.data.get('genre_ids', [])
+
+    with transaction.atomic():
+        # 기존 제외 장르 삭제
+        UserGenreExclusion.objects.filter(user=request.user).delete()
+
+        # 새로운 제외 장르 저장
+        for genre_id in genre_ids:
+            try:
+                genre = Genre.objects.get(genre_id=genre_id)
+                UserGenreExclusion.objects.create(
+                    user=request.user, genre=genre
+                )
+            except Genre.DoesNotExist:
+                continue
+
+        # 진행 상황 업데이트
+        step = OnboardingStep.objects.get(user=request.user)
+        step.current_step = 'gpt_analysis'
+        step.step_data['excluded_genres'] = genre_ids
+        step.save()
+
+    return Response({'message': '제외할 장르가 저장되었습니다.'})
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_random_movie_during_analysis(request):  # GPT 분석 중 보여줄 랜덤 영화
+    random_movie = Movie.objects.order_by('?').first()
+
+    if random_movie:
+        return Response(
+            {
+                'movie_id': random_movie.id,
+                'title': random_movie.title,
+                'poster_path': random_movie.poster_path,
+                'backdrop_path': random_movie.backdrop_path,
+            }
+        )
+    return Response({'movie': None})
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def generate_gpt_recommendations(
+    request,
+):  # 4단계: GPT를 통한 개인화 추천 생성
+    user = request.user
+
+    # 사용자 선호 데이터 수집
+    favorite_movies = UserMoviePreference.objects.filter(
+        user=user, preference_type='favorite'
+    ).select_related('movie')
+
+    interesting_movies = UserMoviePreference.objects.filter(
+        user=user, preference_type='interesting'
+    ).select_related('movie')
+
+    excluded_genres = UserGenreExclusion.objects.filter(
+        user=user
+    ).select_related('genre')
+
+    try:
+        # GPT 서비스 초기화 및 추천 생성
+        gpt_service = GPTRecommendationService()
+        gpt_response = gpt_service.generate_recommendations(
+            user, favorite_movies, interesting_movies, excluded_genres
+        )
+
+        # GPT 추천 결과 저장
+        with transaction.atomic():
+            recommendation, created = GPTRecommendation.objects.get_or_create(
+                user=user,
+                defaults={'taste_summary': gpt_response['taste_summary']},
+            )
+
+            if not created:
+                recommendation.taste_summary = gpt_response['taste_summary']
+                recommendation.save()
+                # 기존 추천 영화들 삭제
+                GPTRecommendedMovie.objects.filter(
+                    recommendation=recommendation
+                ).delete()
+
+            # 새로운 추천 영화들 저장
+            for i, movie_rec in enumerate(gpt_response['movies'], 1):
+                try:
+                    movie = Movie.objects.get(id=movie_rec['movie_id'])
+                    GPTRecommendedMovie.objects.create(
+                        recommendation=recommendation,
+                        movie=movie,
+                        reason=movie_rec['reason'],
+                        recommendation_order=i,
+                        target_age=movie_rec['target_age'],
+                    )
+                except Movie.DoesNotExist:
+                    continue
+
+            # 온보딩 완료 처리
+            step = OnboardingStep.objects.get(user=user)
+            step.current_step = 'completed'
+            step.save()
+
+            user.onboarding_completed = True
+            user.taste_analysis = gpt_response['taste_summary']
+            user.save()
+
+        return Response(
+            {
+                'message': '개인화 추천이 완료되었습니다.',
+                'taste_summary': gpt_response['taste_summary'],
+                'recommended_movies': gpt_response['movies'],
+            }
+        )
+
+    except Exception as e:
+        return Response(
+            {'error': f'추천 생성 중 오류가 발생했습니다: {str(e)}'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_recommendations(request):
+    """사용자의 GPT 추천 결과 조회"""
+    try:
+        recommendation = GPTRecommendation.objects.get(user=request.user)
+
+        # 추천 영화들 가져오기
+        recommended_movies = (
+            GPTRecommendedMovie.objects.filter(recommendation=recommendation)
+            .select_related('movie')
+            .order_by('recommendation_order')
+        )
+
+        movies_data = []
+        for rec_movie in recommended_movies:
+            movie = rec_movie.movie
+            movies_data.append(
+                {
+                    'movie_id': movie.id,
+                    'title': movie.title,
+                    'poster_path': movie.poster_path,
+                    'release_date': movie.release_date,
+                    'overview': movie.overview,
+                    'reason': rec_movie.reason,
+                    'target_age': rec_movie.target_age,
+                    'recommendation_order': rec_movie.recommendation_order,
+                }
+            )
+
+        return Response(
+            {
+                'taste_summary': recommendation.taste_summary,
+                'recommended_movies': movies_data,
+                'created_at': recommendation.created_at,
+                'updated_at': recommendation.updated_at,
+            }
+        )
+
+    except GPTRecommendation.DoesNotExist:
+        return Response(
+            {'error': '아직 추천 결과가 없습니다. 온보딩을 완료해주세요.'},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def regenerate_recommendations(request):
+    """추천 결과 재생성"""
+    user = request.user
+
+    # 기존 추천이 있는지 확인
+    if not GPTRecommendation.objects.filter(user=user).exists():
+        return Response(
+            {
+                'error': '이전 추천 결과가 없습니다. 먼저 온보딩을 완료해주세요.'
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    # 사용자 선호 데이터 수집
+    favorite_movies = UserMoviePreference.objects.filter(
+        user=user, preference_type='favorite'
+    ).select_related('movie')
+
+    interesting_movies = UserMoviePreference.objects.filter(
+        user=user, preference_type='interesting'
+    ).select_related('movie')
+
+    excluded_genres = UserGenreExclusion.objects.filter(
+        user=user
+    ).select_related('genre')
+
+    try:
+        # GPT 서비스 초기화 및 추천 재생성
+        gpt_service = GPTRecommendationService()
+        gpt_response = gpt_service.generate_recommendations(
+            user, favorite_movies, interesting_movies, excluded_genres
+        )
+
+        # 기존 추천 결과 업데이트
+        with transaction.atomic():
+            recommendation = GPTRecommendation.objects.get(user=user)
+            recommendation.taste_summary = gpt_response['taste_summary']
+            recommendation.save()
+
+            # 기존 추천 영화들 삭제
+            GPTRecommendedMovie.objects.filter(
+                recommendation=recommendation
+            ).delete()
+
+            # 새로운 추천 영화들 저장
+            for i, movie_rec in enumerate(gpt_response['movies'], 1):
+                try:
+                    movie = Movie.objects.get(id=movie_rec['movie_id'])
+                    GPTRecommendedMovie.objects.create(
+                        recommendation=recommendation,
+                        movie=movie,
+                        reason=movie_rec['reason'],
+                        recommendation_order=i,
+                        target_age=movie_rec['target_age'],
+                    )
+                except Movie.DoesNotExist:
+                    continue
+
+            # 사용자 취향 분석 업데이트
+            user.taste_analysis = gpt_response['taste_summary']
+            user.save()
+
+        return Response(
+            {
+                'message': '추천이 재생성되었습니다.',
+                'taste_summary': gpt_response['taste_summary'],
+                'recommended_movies': gpt_response['movies'],
+            }
+        )
+
+    except Exception as e:
+        return Response(
+            {'error': f'추천 재생성 중 오류가 발생했습니다: {str(e)}'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )

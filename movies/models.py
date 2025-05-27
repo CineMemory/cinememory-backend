@@ -126,30 +126,30 @@ class UserPreference(models.Model):
         return f"{self.user.username}의 취향"
 
 
-# ✨ 새 모델: 개인화된 타임라인
-class PersonalizedTimeline(models.Model):
-    """사용자별 개인화된 영화 타임라인"""
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='personalized_movies')
-    movie = models.ForeignKey(Movie, on_delete=models.CASCADE)
+# # ✨ 새 모델: 개인화된 타임라인
+# class PersonalizedTimeline(models.Model):
+#     """사용자별 개인화된 영화 타임라인"""
+#     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='personalized_movies')
+#     movie = models.ForeignKey(Movie, on_delete=models.CASCADE)
     
-    # 타임라인 정보
-    user_age = models.IntegerField(help_text="사용자의 몇 살 때 추천 영화인지")
-    year = models.IntegerField(help_text="실제 연도")
+#     # 타임라인 정보
+#     user_age = models.IntegerField(help_text="사용자의 몇 살 때 추천 영화인지")
+#     year = models.IntegerField(help_text="실제 연도")
     
-    # 추천 정보
-    recommendation_reason = models.TextField(blank=True, help_text="추천 이유")
-    preference_score = models.FloatField(default=0.0, help_text="취향 매칭 점수 (0-1)")
-    display_order = models.IntegerField(default=0, help_text="같은 나이 내에서의 정렬 순서")
+#     # 추천 정보
+#     recommendation_reason = models.TextField(blank=True, help_text="추천 이유")
+#     preference_score = models.FloatField(default=0.0, help_text="취향 매칭 점수 (0-1)")
+#     display_order = models.IntegerField(default=0, help_text="같은 나이 내에서의 정렬 순서")
     
-    # 타임스탬프
-    created_at = models.DateTimeField(auto_now_add=True)
+#     # 타임스탬프
+#     created_at = models.DateTimeField(auto_now_add=True)
     
-    class Meta:
-        unique_together = ['user', 'user_age', 'movie']
-        ordering = ['user_age', 'display_order']
+#     class Meta:
+#         unique_together = ['user', 'user_age', 'movie']
+#         ordering = ['user_age', 'display_order']
     
-    def __str__(self):
-        return f"{self.user.username} {self.user_age}세 - {self.movie.title}"
+#     def __str__(self):
+#         return f"{self.user.username} {self.user_age}세 - {self.movie.title}"
 
 
 class MovieActor(models.Model):

@@ -15,5 +15,8 @@ urlpatterns = [
     path('tags/', views.tag_list, name='tagList'),                    # 모든 태그 조회
     path('tags/<str:tag_name>/posts/', views.posts_by_tag, name='postsByTag'),  # 특정 태그의 게시글 조회
     path('stats/', views.community_stats, name='communityStats'),
+    path('user/posts/', views.user_posts, name='userPosts'),
+    path('user/comments/', views.user_comments, name='userComments'),
+    path('user/liked-posts/', views.user_liked_posts, name='userLikedPosts'),
 ]
 

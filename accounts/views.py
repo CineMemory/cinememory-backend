@@ -5,6 +5,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authtoken.models import Token
 from .serializer import UserSerializer
+from .models import Follow
 
 User = get_user_model()
 
@@ -73,12 +74,9 @@ def get_my_info(request):
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_user_profile(request, user_id):
-    """
-    특정 사용자 프로필 조회 API
-    """
     try:
         user = User.objects.get(id=user_id)
-        serializer = UserSerializer(user)
+        serializer = UserSerializer(user, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
     except User.DoesNotExist:
         return Response({'error': '사용자를 찾을 수 없습니다.'}, status=status.HTTP_404_NOT_FOUND)
@@ -199,3 +197,72 @@ def update_profile_image(request):
         'user': serializer.data,
         'message': '프로필 이미지가 업데이트되었습니다.'
     }, status=status.HTTP_200_OK)
+
+
+# 팔로우/언팔로우 토글
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def follow_user(request, user_id):
+    try:
+        target_user = User.objects.get(id=user_id)
+        if target_user == request.user:
+            return Response({'error': '자기 자신을 팔로우할 수 없습니다.'}, 
+                          status=status.HTTP_400_BAD_REQUEST)
+        
+        follow_relation = Follow.objects.filter(
+            follower=request.user, 
+            following=target_user
+        ).first()
+        
+        if follow_relation:
+            # 언팔로우
+            follow_relation.delete()
+            return Response({'message': '언팔로우했습니다.', 'is_following': False}, 
+                          status=status.HTTP_200_OK)
+        else:
+            # 팔로우
+            Follow.objects.create(follower=request.user, following=target_user)
+            return Response({'message': '팔로우했습니다.', 'is_following': True}, 
+                          status=status.HTTP_200_OK)
+            
+    except User.DoesNotExist:
+        return Response({'error': '사용자를 찾을 수 없습니다.'}, 
+                      status=status.HTTP_404_NOT_FOUND)
+
+# 팔로워 목록 조회
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_followers(request, user_id):
+    try:
+        user = User.objects.get(id=user_id)
+        followers = User.objects.filter(following__following=user)
+        serializer = UserSerializer(followers, many=True, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except User.DoesNotExist:
+        return Response({'error': '사용자를 찾을 수 없습니다.'}, 
+                      status=status.HTTP_404_NOT_FOUND)
+
+# 팔로잉 목록 조회
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_following(request, user_id):
+    try:
+        user = User.objects.get(id=user_id)
+        following = User.objects.filter(followers__follower=user)
+        serializer = UserSerializer(following, many=True, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except User.DoesNotExist:
+        return Response({'error': '사용자를 찾을 수 없습니다.'}, 
+                      status=status.HTTP_404_NOT_FOUND)
+
+# username으로 회원 프로필 페이지 추적
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_user_by_username(request, username):
+    try:
+        user = User.objects.get(username=username)
+        serializer = UserSerializer(user, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except User.DoesNotExist:
+        return Response({'error': '사용자를 찾을 수 없습니다.'}, 
+                      status=status.HTTP_404_NOT_FOUND)

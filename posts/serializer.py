@@ -8,16 +8,22 @@ class TagSerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     replies = serializers.SerializerMethodField()
-    user_id = serializers.IntegerField(source='user.id', read_only=True)
-    username = serializers.CharField(source='user.username', read_only=True)
+    # user_id = serializers.IntegerField(source='user.id', read_only=True)
+    # username = serializers.CharField(source='user.username', read_only=True)
+    author = serializers.SerializerMethodField()
     like_count = serializers.SerializerMethodField()
     is_liked = serializers.SerializerMethodField()
     
     class Meta:
         model = Comment
-        fields = ('id', 'user_id', 'username', 'content', 'replies', 'like_count', 'is_liked', 'created_at', 'updated_at')
-        read_only_fields = ('user_id',)
+        fields = ('id', 'author', 'content', 'replies', 'like_count', 'is_liked', 'created_at', 'updated_at')
     
+    def get_author(self, obj):  # 새로 추가
+        return {
+            'id': obj.user.id,
+            'username': obj.user.username
+        }
+        
     def get_like_count(self, obj):
         return obj.like_users.count()
     
@@ -35,13 +41,20 @@ class PostListSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
     like_count = serializers.SerializerMethodField()
     comment_count = serializers.SerializerMethodField()
-    user_id = serializers.IntegerField(source='user.id', read_only=True)
-    username = serializers.CharField(source='user.username', read_only=True)
+    # user_id = serializers.IntegerField(source='user.id', read_only=True)
+    # username = serializers.CharField(source='user.username', read_only=True)
+    author = serializers.SerializerMethodField()
     
     class Meta:
         model = Post
-        fields = ('id', 'user_id', 'username', 'title', 'content', 'tags', 'like_count', 'comment_count', 'created_at', 'updated_at')
+        fields = ('id', 'title', 'content', 'tags', 'like_count', 'comment_count', 'created_at', 'updated_at')
     
+    def get_author(self, obj):
+      return {
+        'id': obj.user.id,
+        'username': obj.user.username
+      }
+
     def get_like_count(self, obj):
         return obj.like_users.count()
     
@@ -65,13 +78,20 @@ class PostSerializer(serializers.ModelSerializer):
     is_liked = serializers.SerializerMethodField()
     comments = serializers.SerializerMethodField()
     comment_count = serializers.SerializerMethodField()
-    user_id = serializers.IntegerField(source='user.id', read_only=True)
-    username = serializers.CharField(source='user.username', read_only=True)
+    # user_id = serializers.IntegerField(source='user.id', read_only=True)
+    # username = serializers.CharField(source='user.username', read_only=True)
+    author = serializers.SerializerMethodField()
     
     class Meta:
         model = Post
-        fields = ('id', 'user_id', 'username', 'title', 'content', 'tags', 'tag_ids', 'tag_names', 'like_count', 'is_liked', 'comments', 'comment_count', 'created_at', 'updated_at')
-        read_only_fields = ('user_id', 'username', 'like_count', 'is_liked', 'comments', 'comment_count')
+        fields = ('id', 'title', 'content', 'tags', 'tag_ids', 'tag_names', 'like_count', 'is_liked', 'comments', 'comment_count', 'created_at', 'updated_at')
+        read_only_fields = ('author', 'like_count', 'is_liked', 'comments', 'comment_count')
+
+    def get_author(self, obj):
+      return {
+        'id': obj.user.id,
+        'username': obj.user.username
+      }
     
     def get_like_count(self, obj):
         return obj.like_users.count()

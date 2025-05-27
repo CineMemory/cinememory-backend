@@ -21,10 +21,13 @@ class UserSerializer(serializers.ModelSerializer):
     birth = serializers.DateField(required=True)  # 생년월일
     profile_image = serializers.ImageField(required=False)  # 프로필 이미지 
     profile_image_url = serializers.SerializerMethodField()  # 프로필 이미지 URL
+    followers_count = serializers.SerializerMethodField()
+    following_count = serializers.SerializerMethodField()
+    is_following = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'password1', 'password2', 'birth', 'profile_image', 'profile_image_url']
+        fields = ['id', 'username', 'password1', 'password2', 'birth', 'profile_image', 'profile_image_url', 'followers_count', 'following_count', 'is_following']
         read_only_fields = ['id']
         
     def get_profile_image_url(self, obj):
@@ -133,6 +136,19 @@ class UserSerializer(serializers.ModelSerializer):
             'username': instance.username,
             'birth': instance.birth
         }
+    def get_followers_count(self, obj):
+        return obj.followers.count()
+    
+    def get_following_count(self, obj):
+        return obj.following.count()
+    
+    def get_is_following(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return obj.followers.filter(follower=request.user).exists()
+        return False
+
+
 class CustomRegisterSerializer(RegisterSerializer):
     """
     dj-rest-auth 회원가입을 위한 커스텀 시리얼라이저
